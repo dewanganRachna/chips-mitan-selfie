@@ -173,7 +173,8 @@
   color: var(--text-muted);
 }
 
-.footer-left, .footer-right {
+.footer-left,
+.footer-right {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -807,10 +808,29 @@
   border-style: solid;
 }
 
-.corner-bracket.top-left { top: -2px; left: -2px; border-width: 4px 0 0 4px; }
-.corner-bracket.top-right { top: -2px; right: -2px; border-width: 4px 4px 0 0; }
-.corner-bracket.bottom-left { bottom: -2px; left: -2px; border-width: 0 0 4px 4px; }
-.corner-bracket.bottom-right { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; }
+.corner-bracket.top-left {
+  top: -2px;
+  left: -2px;
+  border-width: 4px 0 0 4px;
+}
+
+.corner-bracket.top-right {
+  top: -2px;
+  right: -2px;
+  border-width: 4px 4px 0 0;
+}
+
+.corner-bracket.bottom-left {
+  bottom: -2px;
+  left: -2px;
+  border-width: 0 0 4px 4px;
+}
+
+.corner-bracket.bottom-right {
+  bottom: -2px;
+  right: -2px;
+  border-width: 0 4px 4px 0;
+}
 
 .body-silhouette-guide {
   display: flex;
@@ -958,7 +978,8 @@
 }
 
 /* Camera Loading & Error States */
-.camera-loading-state, .camera-error-state {
+.camera-loading-state,
+.camera-error-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1168,11 +1189,11 @@
   transition: all 0.2s ease;
 }
 
-.consent-check-label input:checked + .custom-check-box {
+.consent-check-label input:checked+.custom-check-box {
   background: var(--gold-primary);
 }
 
-.consent-check-label input:checked + .custom-check-box::after {
+.consent-check-label input:checked+.custom-check-box::after {
   content: '✓';
   color: #ffffff;
   font-weight: 900;
@@ -1902,17 +1923,21 @@
   .welcome-title {
     font-size: 2.8rem;
   }
+
   .welcome-container {
     grid-template-columns: 1fr;
     gap: 28px;
   }
+
   .welcome-mascot-showcase {
     order: -1;
   }
+
   .mascot-frame-pedestal {
     max-width: 340px;
     padding: 28px 18px 16px;
   }
+
   .mascot-display-img {
     max-height: 260px;
   }
@@ -1922,31 +1947,40 @@
   .kiosk-header {
     padding: 10px 16px;
   }
+
   .header-steps {
     display: none;
   }
+
   .kiosk-main-stage {
     padding: 12px 16px;
   }
+
   .welcome-steps-row {
     grid-template-columns: 1fr;
   }
+
   .split-preview-stage {
     grid-template-columns: 1fr;
   }
+
   .positioning-overlay.split-mode {
     grid-template-columns: 1fr;
   }
+
   .mascot-zone {
     display: none;
   }
+
   .privacy-points-grid {
     grid-template-columns: 1fr;
   }
+
   .preview-actions-group {
     flex-wrap: wrap;
     justify-content: center;
   }
+
   .pose-choice-pills {
     flex-direction: column;
   }

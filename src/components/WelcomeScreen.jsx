@@ -2,9 +2,9 @@ import React from 'react';
 import { Camera, Sparkles, Shield, ArrowRight, Smartphone, User, Award } from 'lucide-react';
 import { KIOSK_CONFIG } from '../config/kioskConfig';
 
-export function WelcomeScreen({ 
-  onStart, 
-  mascotPath, 
+export function WelcomeScreen({
+  onStart,
+  mascotPath,
   onOpenPrivacy,
   photoLayout,
   setPhotoLayout
@@ -41,7 +41,7 @@ export function WelcomeScreen({
           <div className="pose-choice-container">
             <span className="pose-choice-label">Choose Your Photo Style:</span>
             <div className="pose-choice-pills">
-              <button 
+              <button
                 type="button"
                 className={`pose-pill-btn ${photoLayout === 'with-mascot' ? 'active' : ''}`}
                 onClick={() => setPhotoLayout('with-mascot')}
@@ -50,7 +50,7 @@ export function WelcomeScreen({
                 <span>🐃 With Mitan Mascot</span>
               </button>
 
-              <button 
+              <button
                 type="button"
                 className={`pose-pill-btn ${photoLayout === 'solo' ? 'active' : ''}`}
                 onClick={() => setPhotoLayout('solo')}
@@ -96,7 +96,7 @@ export function WelcomeScreen({
 
           {/* Primary Action Button */}
           <div className="welcome-actions">
-            <button 
+            <button
               className="kiosk-primary-btn pulse-glow"
               onClick={onStart}
               id="start-experience-button"
@@ -130,9 +130,9 @@ export function WelcomeScreen({
 
                 {/* Mascot Graphic with floating effect */}
                 <div className="mascot-img-wrap">
-                  <img 
-                    src={mascotPath} 
-                    alt="CHiPS Mitan Mascot" 
+                  <img
+                    src={mascotPath}
+                    alt="CHiPS Mitan Mascot"
                     className="mascot-display-img"
                   />
                 </div>

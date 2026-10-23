@@ -93,7 +93,7 @@ export function App() {
       </div>
 
       {/* Top Header */}
-      <Header 
+      <Header
         currentStep={currentStep}
         onOpenPrivacy={() => setIsPrivacyOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
@@ -104,7 +104,7 @@ export function App() {
       {/* Main Exhibition Stage */}
       <main className="kiosk-main-stage">
         {currentStep === 'welcome' && (
-          <WelcomeScreen 
+          <WelcomeScreen
             onStart={handleStartExperience}
             mascotPath={activeMascotPath}
             onOpenPrivacy={() => setIsPrivacyOpen(true)}
@@ -114,7 +114,7 @@ export function App() {
         )}
 
         {currentStep === 'camera' && (
-          <CameraCapture 
+          <CameraCapture
             mascotPath={activeMascotPath}
             onPhotoCaptured={handlePhotoCaptured}
             onCancel={handleResetSession}
@@ -125,7 +125,7 @@ export function App() {
         )}
 
         {currentStep === 'preview' && (
-          <PhotoPreview 
+          <PhotoPreview
             visitorPhotoUrl={visitorPhotoUrl}
             mascotPath={activeMascotPath}
             isTransparentMascot={isTransparentMascot}
@@ -142,12 +142,12 @@ export function App() {
       <Footer />
 
       {/* Modals */}
-      <PrivacyNoticeModal 
+      <PrivacyNoticeModal
         isOpen={isPrivacyOpen}
         onClose={() => setIsPrivacyOpen(false)}
       />
 
-      <SettingsModal 
+      <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         mascotMode={mascotMode}

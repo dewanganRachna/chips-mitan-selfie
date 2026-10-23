@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { 
-  Camera, 
-  RotateCcw, 
-  ArrowRight, 
-  RefreshCw, 
-  AlertCircle, 
-  CheckCircle2, 
+import {
+  Camera,
+  RotateCcw,
+  ArrowRight,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle2,
   FlipHorizontal,
   Upload,
   UserCheck,
@@ -17,10 +17,10 @@ import {
 import { playCountdownBeep, playShutterSound } from '../utils/soundEffects';
 import { getSampleVisitorPhotoUrl } from '../utils/sampleVisitor';
 
-export function CameraCapture({ 
-  mascotPath, 
-  onPhotoCaptured, 
-  onCancel, 
+export function CameraCapture({
+  mascotPath,
+  onPhotoCaptured,
+  onCancel,
   selectedDeviceId,
   photoLayout,
   setPhotoLayout
@@ -204,8 +204,8 @@ export function CameraCapture({
             {isSolo ? 'Pose for Official Rajyotsav Souvenir' : 'Pose Naturally Beside CHiPS Mitan'}
           </h2>
           <p className="camera-subtitle">
-            {isSolo 
-              ? 'Stand centered in frame • Step back 5–6 ft for a proud full or three-quarter pose.' 
+            {isSolo
+              ? 'Stand centered in frame • Step back 5–6 ft for a proud full or three-quarter pose.'
               : 'Step back 5–6 ft for a 3/4 or full-body pose • Stand beside Mitan for a natural companion photo!'}
           </p>
         </div>
@@ -213,7 +213,7 @@ export function CameraCapture({
         <div className="camera-quick-tools">
           {/* Mode Switch Button */}
           {setPhotoLayout && (
-            <button 
+            <button
               className={`tool-btn ${isSolo ? 'active-pill' : ''}`}
               onClick={() => setPhotoLayout(isSolo ? 'with-mascot' : 'solo')}
               title="Switch photo style"
@@ -225,7 +225,7 @@ export function CameraCapture({
           )}
 
           {cameraState === 'ready' && (
-            <button 
+            <button
               className="tool-btn"
               onClick={() => setIsMirrored(m => !m)}
               title={isMirrored ? "Disable Mirroring" : "Enable Mirroring"}
@@ -235,7 +235,7 @@ export function CameraCapture({
             </button>
           )}
 
-          <button 
+          <button
             className="tool-btn"
             onClick={handleUseSamplePhoto}
             title="Use Sample Visitor Selfie for instant demo"
@@ -254,20 +254,20 @@ export function CameraCapture({
           <div className="captured-preview-container">
             <div className={`natural-captured-stage ${isSolo ? 'solo-stage' : ''}`}>
               {/* Captured Camera Photograph */}
-              <img 
-                src={capturedPhotoUrl} 
-                alt="Captured Visitor Photograph" 
-                className="captured-base-photo" 
+              <img
+                src={capturedPhotoUrl}
+                alt="Captured Visitor Photograph"
+                className="captured-base-photo"
               />
 
               {/* Natural Companion Mascot Overlay (in with-mascot mode) */}
               {!isSolo && (
                 <div className="captured-mascot-overlay">
                   <div className="captured-mascot-shadow" />
-                  <img 
-                    src={mascotPath} 
-                    alt="Mitan Mascot Companion" 
-                    className="captured-mascot-img" 
+                  <img
+                    src={mascotPath}
+                    alt="Mitan Mascot Companion"
+                    className="captured-mascot-img"
                   />
                   <div className="captured-mascot-pill">
                     <span>🐃 CHiPS Mitan</span>
@@ -292,7 +292,7 @@ export function CameraCapture({
               </span>
 
               <div className="confirm-btn-group">
-                <button 
+                <button
                   className="kiosk-secondary-btn"
                   onClick={handleRetake}
                   id="retake-photo-button"
@@ -301,7 +301,7 @@ export function CameraCapture({
                   <span>Retake Photo</span>
                 </button>
 
-                <button 
+                <button
                   className="kiosk-primary-btn"
                   onClick={handleConfirmPhoto}
                   id="confirm-photo-button"
@@ -371,11 +371,11 @@ export function CameraCapture({
                     <div className="mitan-companion-guide">
                       {/* Floor contact shadow for positioning visual cue */}
                       <div className="mitan-guide-shadow" />
-                      
-                      <img 
-                        src={mascotPath} 
-                        alt="Mitan Live Guide" 
-                        className="mitan-guide-mascot-img" 
+
+                      <img
+                        src={mascotPath}
+                        alt="Mitan Live Guide"
+                        className="mitan-guide-mascot-img"
                       />
 
                       <div className="mitan-guide-badge">
@@ -436,19 +436,19 @@ export function CameraCapture({
                     <span>OR</span>
                   </div>
 
-                  <button 
+                  <button
                     className="kiosk-secondary-btn"
                     onClick={() => fileInputRef.current && fileInputRef.current.click()}
                   >
                     <Upload size={20} />
                     <span>Upload Photo</span>
                   </button>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    accept="image/*" 
-                    style={{ display: 'none' }} 
-                    onChange={handleFileUpload} 
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleFileUpload}
                   />
                 </div>
               </div>
@@ -461,8 +461,8 @@ export function CameraCapture({
       {cameraState === 'ready' && (
         <div className="camera-bottom-controls">
           <label className="consent-check-label">
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               checked={hasConsent}
               onChange={(e) => setHasConsent(e.target.checked)}
             />
@@ -477,7 +477,7 @@ export function CameraCapture({
               <span>Cancel</span>
             </button>
 
-            <button 
+            <button
               className={`kiosk-capture-btn ${countdown !== null ? 'disabled' : ''}`}
               onClick={startCountdown}
               disabled={!hasConsent || countdown !== null}
