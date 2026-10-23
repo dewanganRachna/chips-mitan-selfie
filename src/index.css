@@ -1,0 +1,191 @@
+/* ==========================================================================
+   CHiPS Mitan Photo Booth — Design System & Global Styles
+   Rajyotsav, Chhattisgarh Exhibition
+   ========================================================================== */
+
+:root {
+  /* Color Palette: Royal Dark Green & Heritage Gold */
+  --bg-darkest: #031409;
+  --bg-primary: #062312;
+  --bg-surface: #0a331c;
+  --bg-surface-elevated: #0f4626;
+  --bg-card: rgba(12, 54, 30, 0.75);
+  --bg-glass: rgba(10, 42, 23, 0.65);
+  
+  /* Gold Accents */
+  --gold-primary: #d4af37;
+  --gold-light: #fbe69b;
+  --gold-shimmer: #fef4cf;
+  --gold-deep: #9a7413;
+  --gold-glow: rgba(212, 175, 55, 0.35);
+
+  /* Emerald Highlights */
+  --emerald-accent: #10b981;
+  --emerald-light: #34d399;
+  --emerald-glow: rgba(16, 185, 129, 0.3);
+
+  /* Neutrals */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.82);
+  --text-muted: rgba(255, 255, 255, 0.6);
+  --text-cream: #faf5e6;
+
+  /* Status */
+  --color-error: #ef4444;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+
+  /* Borders & Shadows */
+  --border-gold: 1px solid rgba(212, 175, 55, 0.38);
+  --border-gold-bright: 2px solid #d4af37;
+  --border-glass: 1px solid rgba(255, 255, 255, 0.12);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
+  --shadow-gold-glow: 0 0 25px rgba(212, 175, 55, 0.32);
+
+  /* Typography */
+  --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Rozha One', serif;
+  --font-mono: 'Inter', monospace;
+}
+
+/* Base Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  background-color: var(--bg-darkest);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4);
+    transform: translateY(0);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(212, 175, 55, 0.75), 0 12px 30px rgba(0, 0, 0, 0.5);
+    transform: translateY(-2px);
+  }
+  100% {
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4);
+    transform: translateY(0);
+  }
+}
+
+@keyframes goldShimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes floatMascot {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes countdownZoom {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Utility Classes */
+.gold-text-shimmer {
+  background: linear-gradient(90deg, #d4af37, #fef4cf, #d4af37, #aa8218, #fef4cf);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: goldShimmer 5s linear infinite;
+  display: inline-block;
+}
+
+.pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+/* Kiosk Layout Structure */
+.kiosk-app-root {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(circle at 50% 20%, #0d4626 0%, #062312 45%, #021208 100%);
+  overflow: hidden;
+}
+
+/* Ambient Background Decor */
+.kiosk-bg-decoration {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bg-digital-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(212, 175, 55, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 175, 55, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(circle at 50% 50%, black 40%, transparent 80%);
+}
+
+.bg-corner-vignette {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.8);
+}
+
+/* Stage Area */
+.kiosk-main-stage {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 16px 32px 24px;
+}
