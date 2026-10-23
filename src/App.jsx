@@ -12,7 +12,8 @@ export function App() {
   const [currentStep, setCurrentStep] = useState('welcome'); // 'welcome' | 'camera' | 'preview'
   const [visitorPhotoUrl, setVisitorPhotoUrl] = useState(null);
 
-  // Mascot asset configuration
+  // Mascot asset & photo layout configuration
+  const [photoLayout, setPhotoLayout] = useState(KIOSK_CONFIG.defaultPhotoLayout || 'with-mascot'); // 'with-mascot' | 'solo'
   const [mascotMode, setMascotMode] = useState(KIOSK_CONFIG.defaultMascotMode); // 'transparent' | 'original' | 'custom'
   const [customMascotUrl, setCustomMascotUrl] = useState('');
 
@@ -107,6 +108,8 @@ export function App() {
             onStart={handleStartExperience}
             mascotPath={activeMascotPath}
             onOpenPrivacy={() => setIsPrivacyOpen(true)}
+            photoLayout={photoLayout}
+            setPhotoLayout={setPhotoLayout}
           />
         )}
 
@@ -116,6 +119,8 @@ export function App() {
             onPhotoCaptured={handlePhotoCaptured}
             onCancel={handleResetSession}
             selectedDeviceId={selectedDeviceId}
+            photoLayout={photoLayout}
+            setPhotoLayout={setPhotoLayout}
           />
         )}
 
@@ -128,6 +133,7 @@ export function App() {
             onResetSession={handleResetSession}
             qrHostingConfig={qrHostingConfig}
             onUpdateHostingConfig={setQrHostingConfig}
+            photoLayout={photoLayout}
           />
         )}
       </main>
@@ -152,6 +158,8 @@ export function App() {
         setSelectedDeviceId={setSelectedDeviceId}
         qrHostingConfig={qrHostingConfig}
         setQrHostingConfig={setQrHostingConfig}
+        photoLayout={photoLayout}
+        setPhotoLayout={setPhotoLayout}
       />
     </div>
   );

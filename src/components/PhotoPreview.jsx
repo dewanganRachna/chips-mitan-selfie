@@ -23,7 +23,8 @@ export function PhotoPreview({
   onRetake, 
   onResetSession,
   qrHostingConfig,
-  onUpdateHostingConfig
+  onUpdateHostingConfig,
+  photoLayout
 }) {
   const [composing, setComposing] = useState(true);
   const [composeError, setComposeError] = useState(null);
@@ -43,7 +44,9 @@ export function PhotoPreview({
 
       try {
         const result = await composePhoto(visitorPhotoUrl, mascotPath, {
-          isTransparent: isTransparentMascot
+          isTransparent: isTransparentMascot,
+          layoutMode: photoLayout,
+          canvasTheme: 'light'
         });
 
         if (!isCancelled) {
@@ -56,7 +59,7 @@ export function PhotoPreview({
             particleCount: 80,
             spread: 70,
             origin: { y: 0.6 },
-            colors: ['#d4af37', '#10b981', '#fbf0b9', '#059669']
+            colors: ['#b8860b', '#059669', '#f9e69c', '#047857']
           });
         }
       } catch (err) {
@@ -73,7 +76,7 @@ export function PhotoPreview({
     return () => {
       isCancelled = true;
     };
-  }, [visitorPhotoUrl, mascotPath, isTransparentMascot]);
+  }, [visitorPhotoUrl, mascotPath, isTransparentMascot, photoLayout]);
 
   // Inactivity auto-reset timer to protect privacy on public kiosk
   useEffect(() => {
@@ -137,7 +140,11 @@ export function PhotoPreview({
             <Sparkles size={18} className="gold-icon" />
             <span>Souvenir Photograph Created</span>
           </div>
-          <h2 className="preview-main-title">Here is your Selfie with CHiPS Mitan!</h2>
+          <h2 className="preview-main-title">
+            {photoLayout === 'solo' 
+              ? 'Here is your Official Rajyotsav Souvenir!' 
+              : 'Here is your Selfie with CHiPS Mitan!'}
+          </h2>
         </div>
 
         {/* Inactivity countdown badge */}
@@ -156,10 +163,14 @@ export function PhotoPreview({
           <div className="composing-loading-state">
             <div className="composing-spinner-wrap">
               <RefreshCw size={56} className="spin-icon gold-spin" />
-              <div className="composing-inner-icon">🐃</div>
+              <div className="composing-inner-icon">{photoLayout === 'solo' ? '🏛️' : '🐃'}</div>
             </div>
             <h3>Composing Your Souvenir...</h3>
-            <p>Mitan is digitally joining you into the official Rajyotsav frame.</p>
+            <p>
+              {photoLayout === 'solo'
+                ? 'Creating your official Rajyotsav commemorative souvenir...'
+                : 'Mitan is digitally joining you into the official Rajyotsav frame...'}
+            </p>
             <div className="composing-progress-bar">
               <div className="composing-progress-fill" />
             </div>

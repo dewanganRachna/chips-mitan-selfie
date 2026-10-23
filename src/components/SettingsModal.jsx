@@ -12,11 +12,14 @@ export function SettingsModal({
   selectedDeviceId,
   setSelectedDeviceId,
   qrHostingConfig,
-  setQrHostingConfig
+  setQrHostingConfig,
+  photoLayout,
+  setPhotoLayout
 }) {
   const [videoDevices, setVideoDevices] = useState([]);
   const [localMascotMode, setLocalMascotMode] = useState(mascotMode);
   const [localCustomUrl, setLocalCustomUrl] = useState(customMascotUrl);
+  const [localPhotoLayout, setLocalPhotoLayout] = useState(photoLayout || 'with-mascot');
   const [localQrConfigured, setLocalQrConfigured] = useState(qrHostingConfig?.isConfigured || false);
   const [localQrUrl, setLocalQrUrl] = useState(qrHostingConfig?.hostingBaseUrl || '');
 
@@ -44,6 +47,7 @@ export function SettingsModal({
   const handleSave = () => {
     setMascotMode(localMascotMode);
     setCustomMascotUrl(localCustomUrl);
+    if (setPhotoLayout) setPhotoLayout(localPhotoLayout);
     setQrHostingConfig({
       isConfigured: localQrConfigured,
       hostingBaseUrl: localQrUrl.trim()
@@ -65,6 +69,46 @@ export function SettingsModal({
         </div>
 
         <div className="modal-body settings-body">
+          {/* Section: Default Photo Style (Solo vs With Mascot) */}
+          <div className="settings-section">
+            <div className="section-title-row">
+              <Camera size={20} className="gold-icon" />
+              <h4>Default Photo Presentation Style</h4>
+            </div>
+            <p className="section-desc">
+              Choose whether visitors pose alongside Mitan mascot or take a solo official Rajyotsav souvenir photo.
+            </p>
+            <div className="mascot-choice-grid">
+              <label className={`choice-card ${localPhotoLayout === 'with-mascot' ? 'selected' : ''}`}>
+                <input 
+                  type="radio" 
+                  name="photoLayoutStyle" 
+                  value="with-mascot"
+                  checked={localPhotoLayout === 'with-mascot'}
+                  onChange={() => setLocalPhotoLayout('with-mascot')} 
+                />
+                <div className="choice-info full-width">
+                  <strong>With Mitan Mascot 🐃</strong>
+                  <span>Dual pose: Visitor selfie on left, Mitan digital mascot on right</span>
+                </div>
+              </label>
+
+              <label className={`choice-card ${localPhotoLayout === 'solo' ? 'selected' : ''}`}>
+                <input 
+                  type="radio" 
+                  name="photoLayoutStyle" 
+                  value="solo"
+                  checked={localPhotoLayout === 'solo'}
+                  onChange={() => setLocalPhotoLayout('solo')} 
+                />
+                <div className="choice-info full-width">
+                  <strong>Solo Official Souvenir 🏛️</strong>
+                  <span>Full-frame visitor portrait with ceremonial Chhattisgarh Rajyotsav state borders (no mascot)</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
           {/* Section 1: Mascot Asset Configuration */}
           <div className="settings-section">
             <div className="section-title-row">

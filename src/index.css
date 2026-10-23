@@ -1,48 +1,50 @@
 /* ==========================================================================
-   CHiPS Mitan Photo Booth — Design System & Global Styles
+   CHiPS Photo Booth — Design System & Global Styles (Light Theme)
    Rajyotsav, Chhattisgarh Exhibition
    ========================================================================== */
 
 :root {
-  /* Color Palette: Royal Dark Green & Heritage Gold */
-  --bg-darkest: #031409;
-  --bg-primary: #062312;
-  --bg-surface: #0a331c;
-  --bg-surface-elevated: #0f4626;
-  --bg-card: rgba(12, 54, 30, 0.75);
-  --bg-glass: rgba(10, 42, 23, 0.65);
+  /* Color Palette: Light Theme with Prestigious Forest Green & Royal Gold */
+  --bg-darkest: #f1f5f9;
+  --bg-primary: #ffffff;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #f8fafc;
+  --bg-card: rgba(255, 255, 255, 0.96);
+  --bg-glass: rgba(255, 255, 255, 0.88);
   
-  /* Gold Accents */
-  --gold-primary: #d4af37;
-  --gold-light: #fbe69b;
-  --gold-shimmer: #fef4cf;
-  --gold-deep: #9a7413;
-  --gold-glow: rgba(212, 175, 55, 0.35);
+  /* Gold Accents - Adjusted for high contrast on light backgrounds */
+  --gold-primary: #b8860b;
+  --gold-light: #946c07;
+  --gold-shimmer: #b8860b;
+  --gold-deep: #785605;
+  --gold-glow: rgba(184, 134, 11, 0.22);
+  --gold-border: rgba(184, 134, 11, 0.35);
 
   /* Emerald Highlights */
-  --emerald-accent: #10b981;
-  --emerald-light: #34d399;
-  --emerald-glow: rgba(16, 185, 129, 0.3);
+  --emerald-accent: #059669;
+  --emerald-dark: #064e3b;
+  --emerald-light: #047857;
+  --emerald-glow: rgba(5, 150, 105, 0.2);
 
-  /* Neutrals */
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.82);
-  --text-muted: rgba(255, 255, 255, 0.6);
-  --text-cream: #faf5e6;
+  /* Neutrals - High contrast for light mode */
+  --text-primary: #0a2919;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-cream: #1e293b;
 
   /* Status */
-  --color-error: #ef4444;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
+  --color-error: #dc2626;
+  --color-success: #059669;
+  --color-warning: #d97706;
 
   /* Borders & Shadows */
-  --border-gold: 1px solid rgba(212, 175, 55, 0.38);
-  --border-gold-bright: 2px solid #d4af37;
-  --border-glass: 1px solid rgba(255, 255, 255, 0.12);
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
-  --shadow-gold-glow: 0 0 25px rgba(212, 175, 55, 0.32);
+  --border-gold: 1px solid rgba(184, 134, 11, 0.3);
+  --border-gold-bright: 2px solid #b8860b;
+  --border-glass: 1px solid rgba(226, 232, 240, 0.9);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 6px 20px rgba(10, 41, 25, 0.08);
+  --shadow-lg: 0 14px 35px rgba(10, 41, 25, 0.12);
+  --shadow-gold-glow: 0 0 20px rgba(184, 134, 11, 0.25);
 
   /* Typography */
   --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -80,15 +82,15 @@ html, body {
 /* Animations */
 @keyframes pulseGlow {
   0% {
-    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 10px rgba(184, 134, 11, 0.25), 0 4px 14px rgba(10, 41, 25, 0.1);
     transform: translateY(0);
   }
   50% {
-    box-shadow: 0 0 35px rgba(212, 175, 55, 0.75), 0 12px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 25px rgba(184, 134, 11, 0.45), 0 8px 22px rgba(10, 41, 25, 0.16);
     transform: translateY(-2px);
   }
   100% {
-    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 10px rgba(184, 134, 11, 0.25), 0 4px 14px rgba(10, 41, 25, 0.1);
     transform: translateY(0);
   }
 }
@@ -107,7 +109,7 @@ html, body {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-8px);
   }
 }
 
@@ -129,11 +131,11 @@ html, body {
 
 /* Utility Classes */
 .gold-text-shimmer {
-  background: linear-gradient(90deg, #d4af37, #fef4cf, #d4af37, #aa8218, #fef4cf);
+  background: linear-gradient(90deg, #064e3b, #b8860b, #047857, #b8860b, #064e3b);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: goldShimmer 5s linear infinite;
+  animation: goldShimmer 6s linear infinite;
   display: inline-block;
 }
 
@@ -141,18 +143,18 @@ html, body {
   animation: pulseGlow 3s ease-in-out infinite;
 }
 
-/* Kiosk Layout Structure */
+/* Kiosk Layout Structure (Light Theme) */
 .kiosk-app-root {
   position: relative;
   width: 100%;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: radial-gradient(circle at 50% 20%, #0d4626 0%, #062312 45%, #021208 100%);
+  background: radial-gradient(circle at 50% 12%, #eaf5ee 0%, #f5f8f6 45%, #eef3f7 100%);
   overflow: hidden;
 }
 
-/* Ambient Background Decor */
+/* Ambient Background Decor (Light Theme) */
 .kiosk-bg-decoration {
   position: absolute;
   inset: 0;
@@ -165,16 +167,16 @@ html, body {
   position: absolute;
   inset: 0;
   background-image: 
-    linear-gradient(rgba(212, 175, 55, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(212, 175, 55, 0.04) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(circle at 50% 50%, black 40%, transparent 80%);
+    linear-gradient(rgba(6, 78, 40, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 78, 40, 0.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(circle at 50% 50%, black 50%, transparent 85%);
 }
 
 .bg-corner-vignette {
   position: absolute;
   inset: 0;
-  box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.8);
+  box-shadow: inset 0 0 100px rgba(10, 41, 25, 0.05);
 }
 
 /* Stage Area */

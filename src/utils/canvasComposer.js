@@ -2,8 +2,13 @@
  * Canvas Photo Composition Engine
  * 
  * Composes a high-resolution (1920x1080) event souvenir photograph
- * combining visitor's selfie and the CHiPS Mitan mascot,
- * with royal dark green and gold Rajyotsav branding.
+ * for CHiPS at Rajyotsav, Chhattisgarh.
+ * 
+ * Supports:
+ * 1. Light Theme (Regal Ivory & Gold) & Classic Emerald Theme
+ * 2. Layout Modes:
+ *    - 'with-mascot': Visitor selfie on left, Mitan mascot on right
+ *    - 'solo': Visitor official souvenir portrait with ceremonial state framing (without mascot)
  */
 
 import { KIOSK_CONFIG } from '../config/kioskConfig';
@@ -43,14 +48,14 @@ function roundedRect(ctx, x, y, width, height, radius) {
 /**
  * Draw decorative corner flourishes
  */
-function drawCornerFlourish(ctx, x, y, size, rotation) {
+function drawCornerFlourish(ctx, x, y, size, rotation, goldColor = '#b8860b', accentColor = '#946c07') {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(rotation);
   
-  ctx.strokeStyle = '#d4af37';
-  ctx.fillStyle = '#fbf0b9';
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = goldColor;
+  ctx.fillStyle = accentColor;
+  ctx.lineWidth = 3.5;
 
   // L-bracket
   ctx.beginPath();
@@ -80,9 +85,9 @@ function drawCornerFlourish(ctx, x, y, size, rotation) {
 /**
  * Draw circuit traces representing Digital Chhattisgarh
  */
-function drawDigitalCircuits(ctx, width, height) {
+function drawDigitalCircuits(ctx, width, height, isLight = true) {
   ctx.save();
-  ctx.strokeStyle = 'rgba(212, 175, 55, 0.14)';
+  ctx.strokeStyle = isLight ? 'rgba(184, 134, 11, 0.16)' : 'rgba(212, 175, 55, 0.14)';
   ctx.lineWidth = 1.5;
 
   const traces = [
@@ -90,12 +95,12 @@ function drawDigitalCircuits(ctx, width, height) {
     [[60, 120], [160, 120], [210, 170], [210, 260]],
     [[90, 80], [240, 80], [290, 130], [380, 130]],
     // Bottom left lines
-    [[80, 960], [180, 960], [240, 900], [340, 900]],
+    [[80, 940], [180, 940], [240, 880], [340, 880]],
     // Top right lines
     [[width - 60, 120], [width - 160, 120], [width - 210, 170], [width - 210, 260]],
     [[width - 90, 80], [width - 240, 80], [width - 290, 130], [width - 380, 130]],
     // Bottom right lines
-    [[width - 80, 960], [width - 180, 960], [width - 240, 900], [width - 340, 900]],
+    [[width - 80, 940], [width - 180, 940], [width - 240, 880], [width - 340, 880]],
   ];
 
   traces.forEach(points => {
@@ -106,9 +111,8 @@ function drawDigitalCircuits(ctx, width, height) {
     }
     ctx.stroke();
 
-    // Node at end
     const last = points[points.length - 1];
-    ctx.fillStyle = 'rgba(212, 175, 55, 0.35)';
+    ctx.fillStyle = isLight ? 'rgba(5, 150, 105, 0.4)' : 'rgba(212, 175, 55, 0.35)';
     ctx.beginPath();
     ctx.arc(last[0], last[1], 4, 0, Math.PI * 2);
     ctx.fill();
@@ -120,29 +124,29 @@ function drawDigitalCircuits(ctx, width, height) {
 /**
  * Draw the official CHiPS emblem (stylized tech gateway with 3 circuit nodes)
  */
-function drawChipsEmblem(ctx, cx, cy, size) {
+function drawChipsEmblem(ctx, cx, cy, size, isLight = true) {
   ctx.save();
   ctx.translate(cx, cy);
 
   // Outer gold circle / medallion
   const grad = ctx.createLinearGradient(-size, -size, size, size);
   grad.addColorStop(0, '#f9e69c');
-  grad.addColorStop(0.5, '#d4af37');
-  grad.addColorStop(1, '#997312');
+  grad.addColorStop(0.5, '#b8860b');
+  grad.addColorStop(1, '#785605');
 
   ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.arc(0, 0, size, 0, Math.PI * 2);
   ctx.fill();
 
-  // Dark inner circle
-  ctx.fillStyle = '#0a3219';
+  // Inner circle
+  ctx.fillStyle = '#064e3b';
   ctx.beginPath();
   ctx.arc(0, 0, size - 4, 0, Math.PI * 2);
   ctx.fill();
 
   // Emblem circuit design (as on Mitan's shirt)
-  ctx.strokeStyle = '#fbf0b9';
+  ctx.strokeStyle = '#fef4cf';
   ctx.lineWidth = 3.5;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
@@ -175,7 +179,7 @@ function drawChipsEmblem(ctx, cx, cy, size) {
     ctx.lineTo(px, top + 14);
     ctx.stroke();
 
-    ctx.fillStyle = '#fbf0b9';
+    ctx.fillStyle = '#fef4cf';
     ctx.beginPath();
     ctx.arc(px, top + 13, 3, 0, Math.PI * 2);
     ctx.fill();
@@ -187,20 +191,30 @@ function drawChipsEmblem(ctx, cx, cy, size) {
 /**
  * Main composition routine
  * @param {string} visitorPhotoUrl - Data URL or Object URL of visitor's photo
- * @param {string} mascotAssetUrl - URL to Mitan mascot image
- * @param {object} options - Optional overrides (mode: 'transparent'|'original', customText, etc.)
+ * @param {string} mascotAssetUrl - URL to Mitan mascot image (used if layoutMode === 'with-mascot')
+ * @param {object} options - Configuration overrides:
+ *   - layoutMode: 'with-mascot' | 'solo'
+ *   - canvasTheme: 'light' | 'dark'
+ *   - isTransparent: boolean
  * @returns {Promise<{ dataUrl: string, blob: Blob }>}
  */
 export async function composePhoto(visitorPhotoUrl, mascotAssetUrl, options = {}) {
   const width = KIOSK_CONFIG.canvas.width;
   const height = KIOSK_CONFIG.canvas.height;
-  const isTransparent = options.isTransparent !== undefined ? options.isTransparent : (KIOSK_CONFIG.defaultMascotMode === 'transparent');
+  
+  const layoutMode = options.layoutMode || KIOSK_CONFIG.defaultPhotoLayout || 'with-mascot';
+  const isLight = options.canvasTheme !== 'dark';
+  const isTransparent = options.isTransparent !== undefined 
+    ? options.isTransparent 
+    : (KIOSK_CONFIG.defaultMascotMode === 'transparent');
 
-  // Load both images in parallel
-  const [visitorImg, mascotImg] = await Promise.all([
-    loadImage(visitorPhotoUrl),
-    loadImage(mascotAssetUrl)
-  ]);
+  // Load images
+  const promises = [loadImage(visitorPhotoUrl)];
+  if (layoutMode === 'with-mascot' && mascotAssetUrl) {
+    promises.push(loadImage(mascotAssetUrl));
+  }
+  
+  const [visitorImg, mascotImg] = await Promise.all(promises);
 
   // Create canvas
   const canvas = document.createElement('canvas');
@@ -208,305 +222,427 @@ export async function composePhoto(visitorPhotoUrl, mascotAssetUrl, options = {}
   canvas.height = height;
   const ctx = canvas.getContext('2d');
 
-  // Enable high-quality image smoothing
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
 
-  // 1. Background: Deep Royal Forest Green Gradient
-  const bgGrad = ctx.createRadialGradient(
-    width / 2, height / 2, 100,
-    width / 2, height / 2, width * 0.75
-  );
-  bgGrad.addColorStop(0, '#0f4d2a');
-  bgGrad.addColorStop(0.4, '#09361c');
-  bgGrad.addColorStop(0.85, '#052211');
-  bgGrad.addColorStop(1, '#021309');
+  // 1. Background
+  if (isLight) {
+    // Prestigious Regal Ivory & Warm Pearl Gradient
+    const bgGrad = ctx.createRadialGradient(
+      width / 2, height / 2, 80,
+      width / 2, height / 2, width * 0.75
+    );
+    bgGrad.addColorStop(0, '#ffffff');
+    bgGrad.addColorStop(0.35, '#fdfbf7');
+    bgGrad.addColorStop(0.75, '#f7f2e4');
+    bgGrad.addColorStop(1, '#eee6d4');
 
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, width, height);
 
-  // Digital circuit motif
-  drawDigitalCircuits(ctx, width, height);
+    drawDigitalCircuits(ctx, width, height, true);
+  } else {
+    // Classic Royal Forest Green
+    const bgGrad = ctx.createRadialGradient(
+      width / 2, height / 2, 100,
+      width / 2, height / 2, width * 0.75
+    );
+    bgGrad.addColorStop(0, '#0f4d2a');
+    bgGrad.addColorStop(0.4, '#09361c');
+    bgGrad.addColorStop(0.85, '#052211');
+    bgGrad.addColorStop(1, '#021309');
+
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    drawDigitalCircuits(ctx, width, height, false);
+  }
 
   // 2. Double Gold Frame Border
   ctx.save();
+  const goldColor = isLight ? '#b8860b' : '#d4af37';
+  const goldAccent = isLight ? '#946c07' : '#fbf0b9';
+
   // Outer frame
-  ctx.strokeStyle = '#d4af37';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(30, 30, width - 60, height - 60);
+  ctx.strokeStyle = goldColor;
+  ctx.lineWidth = 4.5;
+  ctx.strokeRect(28, 28, width - 56, height - 56);
 
   // Inner thin frame
-  ctx.strokeStyle = 'rgba(251, 240, 185, 0.45)';
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(40, 40, width - 80, height - 80);
+  ctx.strokeStyle = isLight ? 'rgba(184, 134, 11, 0.4)' : 'rgba(251, 240, 185, 0.45)';
+  ctx.lineWidth = 1.8;
+  ctx.strokeRect(38, 38, width - 76, height - 76);
 
-  // Corner rosettes
-  drawCornerFlourish(ctx, 30, 30, 50, 0);
-  drawCornerFlourish(ctx, width - 30, 30, 50, Math.PI / 2);
-  drawCornerFlourish(ctx, width - 30, height - 30, 50, Math.PI);
-  drawCornerFlourish(ctx, 30, height - 30, 50, -Math.PI / 2);
+  // Corner flourishes
+  drawCornerFlourish(ctx, 28, 28, 50, 0, goldColor, goldAccent);
+  drawCornerFlourish(ctx, width - 28, 28, 50, Math.PI / 2, goldColor, goldAccent);
+  drawCornerFlourish(ctx, width - 28, height - 28, 50, Math.PI, goldColor, goldAccent);
+  drawCornerFlourish(ctx, 28, height - 28, 50, -Math.PI / 2, goldColor, goldAccent);
   ctx.restore();
 
   // 3. Header Ribbon Banner
-  const headerHeight = 125;
-  const headerY = 52;
+  const headerHeight = 115;
+  const headerY = 50;
   const headerWidth = width - 140;
   const headerX = 70;
 
   ctx.save();
-  // Header shadow & background
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+  ctx.shadowColor = isLight ? 'rgba(10, 41, 25, 0.08)' : 'rgba(0, 0, 0, 0.45)';
   ctx.shadowBlur = 18;
-  ctx.shadowOffsetY = 6;
+  ctx.shadowOffsetY = 5;
 
-  const headerGrad = ctx.createLinearGradient(headerX, headerY, headerX + headerWidth, headerY);
-  headerGrad.addColorStop(0, 'rgba(8, 45, 23, 0.95)');
-  headerGrad.addColorStop(0.5, 'rgba(16, 73, 38, 0.98)');
-  headerGrad.addColorStop(1, 'rgba(8, 45, 23, 0.95)');
+  // Header background
+  if (isLight) {
+    const headerGrad = ctx.createLinearGradient(headerX, headerY, headerX + headerWidth, headerY);
+    headerGrad.addColorStop(0, 'rgba(255, 255, 255, 0.98)');
+    headerGrad.addColorStop(0.5, '#fdfbf7');
+    headerGrad.addColorStop(1, 'rgba(255, 255, 255, 0.98)');
+    ctx.fillStyle = headerGrad;
+  } else {
+    const headerGrad = ctx.createLinearGradient(headerX, headerY, headerX + headerWidth, headerY);
+    headerGrad.addColorStop(0, 'rgba(8, 45, 23, 0.95)');
+    headerGrad.addColorStop(0.5, 'rgba(16, 73, 38, 0.98)');
+    headerGrad.addColorStop(1, 'rgba(8, 45, 23, 0.95)');
+    ctx.fillStyle = headerGrad;
+  }
 
-  ctx.fillStyle = headerGrad;
   roundedRect(ctx, headerX, headerY, headerWidth, headerHeight, 16);
   ctx.fill();
 
-  // Gold border around header
   ctx.shadowColor = 'transparent';
-  ctx.strokeStyle = '#d4af37';
+  ctx.strokeStyle = goldColor;
   ctx.lineWidth = 2.5;
   ctx.stroke();
 
   // Emblem in header
-  drawChipsEmblem(ctx, headerX + 65, headerY + headerHeight / 2, 42);
+  drawChipsEmblem(ctx, headerX + 65, headerY + headerHeight / 2, 40, isLight);
 
   // Header Typography
-  // Sub-badge
-  ctx.fillStyle = '#f5c542';
-  ctx.font = '700 17px "Plus Jakarta Sans", sans-serif';
+  ctx.fillStyle = isLight ? '#946c07' : '#f5c542';
+  ctx.font = '700 16px "Plus Jakarta Sans", sans-serif';
   ctx.letterSpacing = '3px';
-  ctx.fillText('CHHATTISGARH INFOTECH PROMOTION SOCIETY • CHiPS', headerX + 130, headerY + 42);
+  ctx.fillText('CHHATTISGARH INFOTECH PROMOTION SOCIETY • CHiPS', headerX + 130, headerY + 40);
 
-  // Main Title
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '800 44px "Plus Jakarta Sans", sans-serif';
+  ctx.fillStyle = isLight ? '#064e3b' : '#ffffff';
+  ctx.font = '800 42px "Plus Jakarta Sans", sans-serif';
   ctx.letterSpacing = '0.5px';
-  ctx.fillText(KIOSK_CONFIG.appName, headerX + 130, headerY + 92);
+  
+  const headerTitle = layoutMode === 'solo' 
+    ? 'Rajyotsav Souvenir Photograph' 
+    : 'Selfie with CHiPS Mitan';
+  ctx.fillText(headerTitle, headerX + 130, headerY + 88);
 
   // Event Tag Pill on right
   const pillW = 270;
-  const pillH = 46;
+  const pillH = 44;
   const pillX = headerX + headerWidth - pillW - 25;
   const pillY = headerY + (headerHeight - pillH) / 2;
 
-  ctx.fillStyle = 'rgba(212, 175, 55, 0.2)';
-  roundedRect(ctx, pillX, pillY, pillW, pillH, 23);
+  ctx.fillStyle = isLight ? 'rgba(184, 134, 11, 0.12)' : 'rgba(212, 175, 55, 0.2)';
+  roundedRect(ctx, pillX, pillY, pillW, pillH, 22);
   ctx.fill();
-  ctx.strokeStyle = '#d4af37';
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = goldColor;
+  ctx.lineWidth = 1.8;
   ctx.stroke();
 
-  ctx.fillStyle = '#fbf0b9';
-  ctx.font = '700 20px "Plus Jakarta Sans", sans-serif';
+  ctx.fillStyle = isLight ? '#785605' : '#fbf0b9';
+  ctx.font = '700 19px "Plus Jakarta Sans", sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('RAJYOTSAV 2026', pillX + pillW / 2, pillY + 30);
+  ctx.fillText('RAJYOTSAV 2026', pillX + pillW / 2, pillY + 28);
   ctx.textAlign = 'left';
   ctx.restore();
 
   // 4. Main Stage Area Layout
-  // Available stage: y from 185 to 925 (height: 740px)
-  // Left side: Visitor's Photograph Frame
-  // Right side: Mitan Mascot
   const stageTop = 185;
   const stageHeight = 740;
-
-  // VISITOR PHOTO FRAME (Left side)
-  const photoW = 790;
-  const photoH = stageHeight;
-  const photoX = 90;
-  const photoY = stageTop;
   const photoCornerRadius = 18;
 
-  ctx.save();
-  // Frame Drop shadow
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-  ctx.shadowBlur = 24;
-  ctx.shadowOffsetX = 4;
-  ctx.shadowOffsetY = 8;
+  // Frame gradient for photo card
+  const frameGrad = ctx.createLinearGradient(0, stageTop, width, stageTop + stageHeight);
+  frameGrad.addColorStop(0, isLight ? '#f9e69c' : '#fbf0b9');
+  frameGrad.addColorStop(0.3, goldColor);
+  frameGrad.addColorStop(0.7, '#785605');
+  frameGrad.addColorStop(1, isLight ? '#b8860b' : '#e8ca68');
 
-  // Outer gold rim
-  ctx.fillStyle = '#103920';
-  roundedRect(ctx, photoX - 8, photoY - 8, photoW + 16, photoH + 16, photoCornerRadius + 4);
-  ctx.fill();
-
-  const frameGrad = ctx.createLinearGradient(photoX, photoY, photoX + photoW, photoY + photoH);
-  frameGrad.addColorStop(0, '#fbf0b9');
-  frameGrad.addColorStop(0.3, '#d4af37');
-  frameGrad.addColorStop(0.7, '#aa8218');
-  frameGrad.addColorStop(1, '#e8ca68');
-
-  ctx.strokeStyle = frameGrad;
-  ctx.lineWidth = 4;
-  ctx.stroke();
-
-  // Reset shadow for photo clipping
-  ctx.shadowColor = 'transparent';
-
-  // Clip visitor photo within frame
-  ctx.save();
-  roundedRect(ctx, photoX, photoY, photoW, photoH, photoCornerRadius);
-  ctx.clip();
-
-  // Background behind photo (in case photo doesn't fill)
-  ctx.fillStyle = '#061a0f';
-  ctx.fillRect(photoX, photoY, photoW, photoH);
-
-  // Object-fit: cover for visitor's photo (preserve aspect ratio perfectly, centered)
-  const vRatio = visitorImg.width / visitorImg.height;
-  const fRatio = photoW / photoH;
-  let sWidth, sHeight, sx, sy;
-
-  if (vRatio > fRatio) {
-    // Visitor image is wider than frame
-    sHeight = visitorImg.height;
-    sWidth = sHeight * fRatio;
-    sx = (visitorImg.width - sWidth) / 2;
-    sy = 0;
-  } else {
-    // Visitor image is taller than frame
-    sWidth = visitorImg.width;
-    sHeight = sWidth / fRatio;
-    sx = 0;
-    sy = (visitorImg.height - sHeight) / 2;
-  }
-
-  ctx.drawImage(visitorImg, sx, sy, sWidth, sHeight, photoX, photoY, photoW, photoH);
-
-  // Subtle bottom gradient inside photo for the badge
-  const photoOverlayGrad = ctx.createLinearGradient(photoX, photoY + photoH - 120, photoX, photoY + photoH);
-  photoOverlayGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-  photoOverlayGrad.addColorStop(1, 'rgba(3, 20, 10, 0.85)');
-  ctx.fillStyle = photoOverlayGrad;
-  ctx.fillRect(photoX, photoY + photoH - 120, photoW, 120);
-
-  // Visitor badge text
-  ctx.fillStyle = '#fbf0b9';
-  ctx.font = '700 22px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('Visitor Souvenir Photo', photoX + 24, photoY + photoH - 42);
-
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-  ctx.font = '500 16px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('Digital Chhattisgarh • Rajyotsav Pavilion', photoX + 24, photoY + photoH - 18);
-
-  ctx.restore(); // end photo clipping
-  ctx.restore(); // end photo save
-
-  // MITAN MASCOT (Right side)
-  // mascotImg dimensions: 853 x 1024 (aspect ratio approx 0.833)
-  const mascotTargetHeight = 720;
-  const mascotAspect = mascotImg.width / mascotImg.height;
-  const mascotTargetWidth = mascotTargetHeight * mascotAspect; // ~600px
-  
-  // Center Mitan in the right half: right region is from 900 to 1830 (center is ~1365)
-  const rightRegionStart = photoX + photoW + 40; // 920
-  const rightRegionWidth = width - rightRegionStart - 70; // ~930
-  const mascotX = rightRegionStart + (rightRegionWidth - mascotTargetWidth) / 2;
-  const mascotY = stageTop + (stageHeight - mascotTargetHeight); // align with bottom of frame
-
-  if (isTransparent) {
-    // 1. Draw floor contact shadow for realistic grounded appearance
-    ctx.save();
-    const shadowCx = mascotX + mascotTargetWidth / 2;
-    const shadowCy = mascotY + mascotTargetHeight - 16;
-    const shadowRx = mascotTargetWidth * 0.44;
-    const shadowRy = 28;
-
-    const shadowGrad = ctx.createRadialGradient(shadowCx, shadowCy, 5, shadowCx, shadowCy, shadowRx);
-    shadowGrad.addColorStop(0, 'rgba(0, 0, 0, 0.6)');
-    shadowGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0.25)');
-    shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
-    ctx.fillStyle = shadowGrad;
-    ctx.beginPath();
-    ctx.ellipse(shadowCx, shadowCy, shadowRx, shadowRy, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // 2. Draw Mitan mascot at full fidelity
-    ctx.drawImage(mascotImg, 0, 0, mascotImg.width, mascotImg.height, mascotX, mascotY, mascotTargetWidth, mascotTargetHeight);
-
-    // 3. Name banner tag next to or beneath Mitan
-    ctx.save();
-    const tagW = 340;
-    const tagH = 50;
-    const tagX = mascotX + (mascotTargetWidth - tagW) / 2;
-    const tagY = mascotY + mascotTargetHeight - tagH - 8;
-
-    ctx.fillStyle = 'rgba(6, 35, 18, 0.88)';
-    roundedRect(ctx, tagX, tagY, tagW, tagH, 25);
-    ctx.fill();
-    ctx.strokeStyle = '#d4af37';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    ctx.fillStyle = '#fbf0b9';
-    ctx.font = '800 22px "Plus Jakarta Sans", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Mitan • Digital Mascot', tagX + tagW / 2, tagY + 33);
-    ctx.restore();
-
-  } else {
-    // Original mascot has off-white background — place in an elegant matching gold portrait frame
-    const mFrameW = mascotTargetWidth + 30;
-    const mFrameH = stageHeight;
-    const mFrameX = rightRegionStart + (rightRegionWidth - mFrameW) / 2;
-    const mFrameY = stageTop;
+  if (layoutMode === 'solo') {
+    // ==========================================
+    // SOLO OFFICIAL SOUVENIR MODE (No Mascot)
+    // ==========================================
+    const photoW = 1060;
+    const photoH = stageHeight;
+    const photoX = (width - photoW) / 2;
+    const photoY = stageTop;
 
     ctx.save();
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
-    ctx.shadowBlur = 22;
-    ctx.shadowOffsetY = 6;
+    ctx.shadowColor = isLight ? 'rgba(10, 41, 25, 0.14)' : 'rgba(0, 0, 0, 0.6)';
+    ctx.shadowBlur = 24;
+    ctx.shadowOffsetY = 8;
 
-    // Frame backing
-    ctx.fillStyle = '#103920';
-    roundedRect(ctx, mFrameX - 6, mFrameY - 6, mFrameW + 12, mFrameH + 12, photoCornerRadius + 4);
+    // Outer backing
+    ctx.fillStyle = isLight ? '#ffffff' : '#103920';
+    roundedRect(ctx, photoX - 8, photoY - 8, photoW + 16, photoH + 16, photoCornerRadius + 4);
     ctx.fill();
 
     ctx.strokeStyle = frameGrad;
-    ctx.lineWidth = 3.5;
+    ctx.lineWidth = 4.5;
     ctx.stroke();
 
     ctx.shadowColor = 'transparent';
 
-    // Clip
+    // Clip visitor photo within frame
     ctx.save();
-    roundedRect(ctx, mFrameX, mFrameY, mFrameW, mFrameH, photoCornerRadius);
+    roundedRect(ctx, photoX, photoY, photoW, photoH, photoCornerRadius);
     ctx.clip();
 
-    // Fill background with warm off-white matching mascot
-    ctx.fillStyle = '#faf8f2';
-    ctx.fillRect(mFrameX, mFrameY, mFrameW, mFrameH);
+    // Background behind photo
+    ctx.fillStyle = isLight ? '#f8fafc' : '#061a0f';
+    ctx.fillRect(photoX, photoY, photoW, photoH);
 
-    // Draw mascot contain-fit
-    const drawY = mFrameY + (mFrameH - mascotTargetHeight) / 2;
-    const drawX = mFrameX + (mFrameW - mascotTargetWidth) / 2;
-    ctx.drawImage(mascotImg, 0, 0, mascotImg.width, mascotImg.height, drawX, drawY, mascotTargetWidth, mascotTargetHeight);
+    // Object-fit: cover for visitor's photo
+    const vRatio = visitorImg.width / visitorImg.height;
+    const fRatio = photoW / photoH;
+    let sWidth, sHeight, sx, sy;
 
-    // Bottom banner inside frame
-    const bannerH = 50;
-    ctx.fillStyle = '#0a351b';
-    ctx.fillRect(mFrameX, mFrameY + mFrameH - bannerH, mFrameW, bannerH);
-    ctx.strokeStyle = '#d4af37';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(mFrameX, mFrameY + mFrameH - bannerH);
-    ctx.lineTo(mFrameX + mFrameW, mFrameY + mFrameH - bannerH);
+    if (vRatio > fRatio) {
+      sHeight = visitorImg.height;
+      sWidth = sHeight * fRatio;
+      sx = (visitorImg.width - sWidth) / 2;
+      sy = 0;
+    } else {
+      sWidth = visitorImg.width;
+      sHeight = sWidth / fRatio;
+      sx = 0;
+      sy = (visitorImg.height - sHeight) / 2;
+    }
+
+    ctx.drawImage(visitorImg, sx, sy, sWidth, sHeight, photoX, photoY, photoW, photoH);
+
+    // Bottom gradient overlay inside photo
+    const photoOverlayGrad = ctx.createLinearGradient(photoX, photoY + photoH - 120, photoX, photoY + photoH);
+    photoOverlayGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    photoOverlayGrad.addColorStop(1, 'rgba(6, 40, 20, 0.85)');
+    ctx.fillStyle = photoOverlayGrad;
+    ctx.fillRect(photoX, photoY + photoH - 120, photoW, 120);
+
+    // Visitor badge text
+    ctx.fillStyle = '#fef4cf';
+    ctx.font = '700 24px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('Official Visitor Souvenir • छत्तीसगढ़ राज्योत्सव 2026', photoX + 28, photoY + photoH - 44);
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.font = '500 16px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('CHiPS Pavilion • Celebrating Digital Empowerment in Chhattisgarh', photoX + 28, photoY + photoH - 18);
+
+    ctx.restore(); // end photo clip
+    ctx.restore(); // end photo save
+
+    // Decorative Ceremonial Side Emblems
+    // Left side seal
+    ctx.save();
+    const sealX = photoX / 2;
+    const sealY = stageTop + stageHeight / 2;
+    drawChipsEmblem(ctx, sealX, sealY - 40, 52, isLight);
+
+    ctx.fillStyle = isLight ? '#064e3b' : '#fef4cf';
+    ctx.font = '700 18px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('चिप्स', sealX, sealY + 36);
+    ctx.font = '600 13px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = isLight ? '#785605' : 'rgba(255, 255, 255, 0.8)';
+    ctx.fillText('स्मृति पत्र 2026', sealX, sealY + 56);
+    ctx.restore();
+
+    // Right side seal
+    ctx.save();
+    const rightSealX = width - (width - (photoX + photoW)) / 2;
+    drawChipsEmblem(ctx, rightSealX, sealY - 40, 52, isLight);
+
+    ctx.fillStyle = isLight ? '#064e3b' : '#fef4cf';
+    ctx.font = '700 18px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('राज्योत्सव', rightSealX, sealY + 36);
+    ctx.font = '600 13px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = isLight ? '#785605' : 'rgba(255, 255, 255, 0.8)';
+    ctx.fillText('Digital Chhattisgarh', rightSealX, sealY + 56);
+    ctx.restore();
+
+  } else {
+    // ==========================================
+    // WITH MITAN MASCOT MODE
+    // ==========================================
+    const photoW = 790;
+    const photoH = stageHeight;
+    const photoX = 90;
+    const photoY = stageTop;
+
+    ctx.save();
+    ctx.shadowColor = isLight ? 'rgba(10, 41, 25, 0.12)' : 'rgba(0, 0, 0, 0.6)';
+    ctx.shadowBlur = 24;
+    ctx.shadowOffsetX = 4;
+    ctx.shadowOffsetY = 8;
+
+    // Outer rim
+    ctx.fillStyle = isLight ? '#ffffff' : '#103920';
+    roundedRect(ctx, photoX - 8, photoY - 8, photoW + 16, photoH + 16, photoCornerRadius + 4);
+    ctx.fill();
+
+    ctx.strokeStyle = frameGrad;
+    ctx.lineWidth = 4;
     ctx.stroke();
 
-    ctx.fillStyle = '#fbf0b9';
-    ctx.font = '700 20px "Plus Jakarta Sans", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Mitan • Digital Mascot of CHiPS', mFrameX + mFrameW / 2, mFrameY + mFrameH - 18);
+    ctx.shadowColor = 'transparent';
 
-    ctx.restore();
-    ctx.restore();
+    // Clip visitor photo within frame
+    ctx.save();
+    roundedRect(ctx, photoX, photoY, photoW, photoH, photoCornerRadius);
+    ctx.clip();
+
+    ctx.fillStyle = isLight ? '#f8fafc' : '#061a0f';
+    ctx.fillRect(photoX, photoY, photoW, photoH);
+
+    // Object-fit: cover
+    const vRatio = visitorImg.width / visitorImg.height;
+    const fRatio = photoW / photoH;
+    let sWidth, sHeight, sx, sy;
+
+    if (vRatio > fRatio) {
+      sHeight = visitorImg.height;
+      sWidth = sHeight * fRatio;
+      sx = (visitorImg.width - sWidth) / 2;
+      sy = 0;
+    } else {
+      sWidth = visitorImg.width;
+      sHeight = sWidth / fRatio;
+      sx = 0;
+      sy = (visitorImg.height - sHeight) / 2;
+    }
+
+    ctx.drawImage(visitorImg, sx, sy, sWidth, sHeight, photoX, photoY, photoW, photoH);
+
+    // Bottom gradient overlay
+    const photoOverlayGrad = ctx.createLinearGradient(photoX, photoY + photoH - 120, photoX, photoY + photoH);
+    photoOverlayGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    photoOverlayGrad.addColorStop(1, 'rgba(3, 20, 10, 0.85)');
+    ctx.fillStyle = photoOverlayGrad;
+    ctx.fillRect(photoX, photoY + photoH - 120, photoW, 120);
+
+    // Visitor badge text
+    ctx.fillStyle = '#fef4cf';
+    ctx.font = '700 22px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('Visitor Souvenir Photo', photoX + 24, photoY + photoH - 42);
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.font = '500 16px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('Digital Chhattisgarh • Rajyotsav Pavilion', photoX + 24, photoY + photoH - 18);
+
+    ctx.restore(); // end photo clipping
+    ctx.restore(); // end photo save
+
+    // MITAN MASCOT (Right side)
+    const mascotTargetHeight = 720;
+    const mascotAspect = mascotImg.width / mascotImg.height;
+    const mascotTargetWidth = mascotTargetHeight * mascotAspect; // ~600px
+    
+    const rightRegionStart = photoX + photoW + 40; // 920
+    const rightRegionWidth = width - rightRegionStart - 70; // ~930
+    const mascotX = rightRegionStart + (rightRegionWidth - mascotTargetWidth) / 2;
+    const mascotY = stageTop + (stageHeight - mascotTargetHeight);
+
+    if (isTransparent) {
+      // Floor contact shadow
+      ctx.save();
+      const shadowCx = mascotX + mascotTargetWidth / 2;
+      const shadowCy = mascotY + mascotTargetHeight - 16;
+      const shadowRx = mascotTargetWidth * 0.44;
+      const shadowRy = 28;
+
+      const shadowGrad = ctx.createRadialGradient(shadowCx, shadowCy, 5, shadowCx, shadowCy, shadowRx);
+      shadowGrad.addColorStop(0, 'rgba(10, 41, 25, 0.35)');
+      shadowGrad.addColorStop(0.5, 'rgba(10, 41, 25, 0.15)');
+      shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+      ctx.fillStyle = shadowGrad;
+      ctx.beginPath();
+      ctx.ellipse(shadowCx, shadowCy, shadowRx, shadowRy, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Draw mascot
+      ctx.drawImage(mascotImg, 0, 0, mascotImg.width, mascotImg.height, mascotX, mascotY, mascotTargetWidth, mascotTargetHeight);
+
+      // Name banner tag beneath Mitan
+      ctx.save();
+      const tagW = 340;
+      const tagH = 50;
+      const tagX = mascotX + (mascotTargetWidth - tagW) / 2;
+      const tagY = mascotY + mascotTargetHeight - tagH - 8;
+
+      ctx.fillStyle = isLight ? '#ffffff' : 'rgba(6, 35, 18, 0.88)';
+      roundedRect(ctx, tagX, tagY, tagW, tagH, 25);
+      ctx.fill();
+      ctx.strokeStyle = goldColor;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = isLight ? '#064e3b' : '#fbf0b9';
+      ctx.font = '800 22px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Mitan • Digital Mascot', tagX + tagW / 2, tagY + 33);
+      ctx.restore();
+
+    } else {
+      // Original mascot in portrait frame
+      const mFrameW = mascotTargetWidth + 30;
+      const mFrameH = stageHeight;
+      const mFrameX = rightRegionStart + (rightRegionWidth - mFrameW) / 2;
+      const mFrameY = stageTop;
+
+      ctx.save();
+      ctx.shadowColor = isLight ? 'rgba(10, 41, 25, 0.12)' : 'rgba(0, 0, 0, 0.55)';
+      ctx.shadowBlur = 22;
+      ctx.shadowOffsetY = 6;
+
+      ctx.fillStyle = isLight ? '#ffffff' : '#103920';
+      roundedRect(ctx, mFrameX - 6, mFrameY - 6, mFrameW + 12, mFrameH + 12, photoCornerRadius + 4);
+      ctx.fill();
+
+      ctx.strokeStyle = frameGrad;
+      ctx.lineWidth = 3.5;
+      ctx.stroke();
+
+      ctx.shadowColor = 'transparent';
+
+      // Clip
+      ctx.save();
+      roundedRect(ctx, mFrameX, mFrameY, mFrameW, mFrameH, photoCornerRadius);
+      ctx.clip();
+
+      ctx.fillStyle = '#faf8f2';
+      ctx.fillRect(mFrameX, mFrameY, mFrameW, mFrameH);
+
+      const drawY = mFrameY + (mFrameH - mascotTargetHeight) / 2;
+      const drawX = mFrameX + (mFrameW - mascotTargetWidth) / 2;
+      ctx.drawImage(mascotImg, 0, 0, mascotImg.width, mascotImg.height, drawX, drawY, mascotTargetWidth, mascotTargetHeight);
+
+      // Bottom banner inside frame
+      const bannerH = 50;
+      ctx.fillStyle = isLight ? '#ffffff' : '#0a351b';
+      ctx.fillRect(mFrameX, mFrameY + mFrameH - bannerH, mFrameW, bannerH);
+      ctx.strokeStyle = goldColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(mFrameX, mFrameY + mFrameH - bannerH);
+      ctx.lineTo(mFrameX + mFrameW, mFrameY + mFrameH - bannerH);
+      ctx.stroke();
+
+      ctx.fillStyle = isLight ? '#064e3b' : '#fbf0b9';
+      ctx.font = '700 20px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Mitan • Digital Mascot of CHiPS', mFrameX + mFrameW / 2, mFrameY + mFrameH - 18);
+
+      ctx.restore();
+      ctx.restore();
+    }
   }
 
   // 5. Bottom Footer Banner
@@ -517,10 +653,10 @@ export async function composePhoto(visitorPhotoUrl, mascotAssetUrl, options = {}
   ctx.save();
   // Thin gold divider line
   const divGrad = ctx.createLinearGradient(footerX, footerY, footerX + footerW, footerY);
-  divGrad.addColorStop(0, 'rgba(212, 175, 55, 0.1)');
-  divGrad.addColorStop(0.2, 'rgba(212, 175, 55, 0.8)');
-  divGrad.addColorStop(0.8, 'rgba(212, 175, 55, 0.8)');
-  divGrad.addColorStop(1, 'rgba(212, 175, 55, 0.1)');
+  divGrad.addColorStop(0, 'rgba(184, 134, 11, 0.1)');
+  divGrad.addColorStop(0.2, goldColor);
+  divGrad.addColorStop(0.8, goldColor);
+  divGrad.addColorStop(1, 'rgba(184, 134, 11, 0.1)');
 
   ctx.strokeStyle = divGrad;
   ctx.lineWidth = 2;
@@ -530,27 +666,27 @@ export async function composePhoto(visitorPhotoUrl, mascotAssetUrl, options = {}
   ctx.stroke();
 
   // Footer Content Left
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = isLight ? '#064e3b' : '#ffffff';
   ctx.font = '700 20px "Plus Jakarta Sans", sans-serif';
   ctx.textAlign = 'left';
   ctx.fillText('Rajyotsav | Chhattisgarh', footerX + 15, footerY + 30);
 
-  ctx.fillStyle = 'rgba(251, 240, 185, 0.85)';
+  ctx.fillStyle = isLight ? '#475569' : 'rgba(251, 240, 185, 0.85)';
   ctx.font = '500 14px "Plus Jakarta Sans", sans-serif';
   ctx.fillText('Government of Chhattisgarh • Celebrating Digital Progress', footerX + 15, footerY + 52);
 
   // Footer Content Right
   ctx.textAlign = 'right';
-  ctx.fillStyle = '#d4af37';
+  ctx.fillStyle = goldColor;
   ctx.font = '700 17px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('#SelfieWithMitan • #CHiPS', footerX + footerW - 15, footerY + 30);
+  ctx.fillText('#DigitalChhattisgarh • #CHiPS', footerX + footerW - 15, footerY + 30);
 
   const dateStr = new Date().toLocaleDateString('en-IN', {
     day: 'numeric',
     month: 'short',
     year: 'numeric'
   });
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.fillStyle = isLight ? '#64748b' : 'rgba(255, 255, 255, 0.7)';
   ctx.font = '500 14px "Plus Jakarta Sans", sans-serif';
   ctx.fillText(`Date: ${dateStr} • Exhibition Souvenir`, footerX + footerW - 15, footerY + 52);
   ctx.restore();

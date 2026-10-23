@@ -8,7 +8,9 @@ import {
   CheckCircle2, 
   FlipHorizontal,
   Upload,
-  UserCheck
+  UserCheck,
+  User,
+  Users
 } from 'lucide-react';
 import { playCountdownBeep, playShutterSound } from '../utils/soundEffects';
 import { getSampleVisitorPhotoUrl } from '../utils/sampleVisitor';
@@ -17,7 +19,9 @@ export function CameraCapture({
   mascotPath, 
   onPhotoCaptured, 
   onCancel, 
-  selectedDeviceId 
+  selectedDeviceId,
+  photoLayout,
+  setPhotoLayout
 }) {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -27,11 +31,13 @@ export function CameraCapture({
   const [errorMessage, setErrorMessage] = useState('');
   const [isMirrored, setIsMirrored] = useState(true);
   const [hasConsent, setHasConsent] = useState(true);
-  const [countdown, setCountdown] = useState(null); // null or 3, 2, 1
+  const [countdown, setCountdown] = useState(null);
   const [capturedPhotoUrl, setCapturedPhotoUrl] = useState(null);
   const [isFlashing, setIsFlashing] = useState(false);
 
-  // Stop all camera tracks reliably
+  const isSolo = photoLayout === 'solo';
+
+  // Stop camera tracks cleanly
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
@@ -50,7 +56,6 @@ export function CameraCapture({
     setErrorMessage('');
     stopCamera();
 
-    // Check if mediaDevices is supported
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setCameraState('error');
       setErrorMessage('Camera access is not supported by this browser. You can still test by uploading a sample photo below.');
@@ -98,7 +103,6 @@ export function CameraCapture({
     }
   }, [selectedDeviceId, stopCamera]);
 
-  // Mount effect to start camera & cleanup on unmount
   useEffect(() => {
     startCamera();
     return () => {
@@ -106,11 +110,9 @@ export function CameraCapture({
     };
   }, [startCamera, stopCamera]);
 
-  // Execute actual snapshot capture
   const takeSnapshot = useCallback(() => {
     if (!videoRef.current) return;
 
-    // Trigger flash animation
     setIsFlashing(true);
     playShutterSound();
     setTimeout(() => setIsFlashing(false), 250);
@@ -121,7 +123,6 @@ export function CameraCapture({
     canvas.height = video.videoHeight || 720;
     const ctx = canvas.getContext('2d');
 
-    // Handle mirror inversion if enabled
     if (isMirrored) {
       ctx.translate(canvas.width, 0);
       ctx.scale(-1, 1);
@@ -135,7 +136,6 @@ export function CameraCapture({
     stopCamera();
   }, [isMirrored, stopCamera]);
 
-  // Start 3-second countdown
   const startCountdown = () => {
     if (countdown !== null) return;
     setCountdown(3);
@@ -158,14 +158,12 @@ export function CameraCapture({
     }, 1000);
   };
 
-  // Retake photo: reset to live camera feed
   const handleRetake = () => {
     setCapturedPhotoUrl(null);
     setCountdown(null);
     startCamera();
   };
 
-  // Continue to composition screen with captured photo
   const handleConfirmPhoto = () => {
     if (capturedPhotoUrl) {
       stopCamera();
@@ -173,7 +171,6 @@ export function CameraCapture({
     }
   };
 
-  // Fallback demo upload handler (for testing when camera is unavailable)
   const handleFileUpload = (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -187,7 +184,6 @@ export function CameraCapture({
     reader.readAsDataURL(file);
   };
 
-  // Instant Sample Visitor Photo (ideal for fast demonstration or testing)
   const handleUseSamplePhoto = () => {
     const sampleUrl = getSampleVisitorPhotoUrl();
     setCapturedPhotoUrl(sampleUrl);
@@ -197,26 +193,41 @@ export function CameraCapture({
 
   return (
     <div className="camera-screen">
-      {/* Flash overlay */}
       <div className={`camera-flash ${isFlashing ? 'active' : ''}`} />
 
       {/* Screen Header & Instructions */}
       <div className="camera-header-banner">
         <div className="camera-heading-wrap">
-          <h2 className="camera-title">Stand in Frame with Mitan</h2>
+          <h2 className="camera-title">
+            {isSolo ? 'Pose for Official Rajyotsav Souvenir' : 'Stand in Frame with Mitan'}
+          </h2>
           <p className="camera-subtitle">
-            Stand on the <strong>LEFT</strong> marker. Mitan will pose right beside you on the right!
+            {isSolo 
+              ? 'Stand in the CENTER of the frame with a proud smile.' 
+              : 'Stand on the LEFT marker. Mitan will pose right beside you on the right!'}
           </p>
         </div>
 
         <div className="camera-quick-tools">
+          {/* Mode Switch Button */}
+          {setPhotoLayout && (
+            <button 
+              className={`tool-btn ${isSolo ? 'active-pill' : ''}`}
+              onClick={() => setPhotoLayout(isSolo ? 'with-mascot' : 'solo')}
+              title="Switch photo style"
+            >
+              {isSolo ? <Users size={17} /> : <User size={17} />}
+              <span>{isSolo ? 'Solo Mode' : 'With Mitan'}</span>
+            </button>
+          )}
+
           {cameraState === 'ready' && (
             <button 
               className="tool-btn"
               onClick={() => setIsMirrored(m => !m)}
               title={isMirrored ? "Disable Mirroring" : "Enable Mirroring"}
             >
-              <FlipHorizontal size={18} />
+              <FlipHorizontal size={17} />
               <span>{isMirrored ? "Mirrored" : "Natural"}</span>
             </button>
           )}
@@ -227,7 +238,7 @@ export function CameraCapture({
             title="Use Sample Visitor Selfie for instant demo"
             id="demo-sample-photo-btn"
           >
-            <UserCheck size={18} />
+            <UserCheck size={17} />
             <span>Sample Selfie</span>
           </button>
         </div>
@@ -235,27 +246,27 @@ export function CameraCapture({
 
       {/* Main Viewport Container */}
       <div className="camera-viewport-card">
-        {/* State: Captured Preview */}
         {cameraState === 'captured' && capturedPhotoUrl ? (
+          /* Captured Preview */
           <div className="captured-preview-container">
-            <div className="split-preview-stage">
-              {/* Left: Visitor's Taken Photo */}
+            <div className={`split-preview-stage ${isSolo ? 'solo-stage' : ''}`}>
               <div className="preview-half visitor-half">
                 <div className="preview-label-tag">Your Photo</div>
-                <img src={capturedPhotoUrl} alt="Your Selfie" className="preview-image" />
+                <img src={capturedPhotoUrl} alt="Your Photo" className="preview-image" />
               </div>
 
-              {/* Right: Mitan Mascot */}
-              <div className="preview-half mascot-half">
-                <div className="preview-label-tag">Mitan (Companion)</div>
-                <img src={mascotPath} alt="Mitan Mascot" className="preview-image mascot-preview" />
-              </div>
+              {!isSolo && (
+                <div className="preview-half mascot-half">
+                  <div className="preview-label-tag">Mitan (Companion)</div>
+                  <img src={mascotPath} alt="Mitan Mascot" className="preview-image mascot-preview" />
+                </div>
+              )}
             </div>
 
             <div className="capture-confirm-bar">
               <span className="confirm-tip">
                 <CheckCircle2 size={20} className="icon-success" />
-                Great shot! Ready to generate your official Rajyotsav souvenir?
+                Great shot! Ready to generate your official souvenir?
               </span>
 
               <div className="confirm-btn-group">
@@ -280,9 +291,8 @@ export function CameraCapture({
             </div>
           </div>
         ) : (
-          /* State: Live Camera or Error */
+          /* Live Camera Feed */
           <div className="live-camera-container">
-            {/* Live Video Feed */}
             <video
               ref={videoRef}
               autoPlay
@@ -293,36 +303,49 @@ export function CameraCapture({
 
             {/* Positioning Guides Overlay */}
             {cameraState === 'ready' && (
-              <div className="positioning-overlay">
-                {/* Left side guide: Visitor positioning */}
-                <div className="guide-zone visitor-zone">
-                  <div className="guide-box">
+              <div className={`positioning-overlay ${isSolo ? 'solo-mode' : 'split-mode'}`}>
+                {isSolo ? (
+                  /* Center Solo Guide Box */
+                  <div className="solo-guide-box">
                     <div className="corner-bracket top-left" />
                     <div className="corner-bracket top-right" />
                     <div className="corner-bracket bottom-left" />
                     <div className="corner-bracket bottom-right" />
-                    <div className="guide-badge">
-                      <span>👤 Stand Here (You)</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right side guide: Mitan Ghost Preview */}
-                <div className="guide-zone mascot-zone">
-                  <div className="ghost-mascot-container">
-                    <img 
-                      src={mascotPath} 
-                      alt="Mitan Ghost" 
-                      className="ghost-mascot-img" 
-                    />
                     <div className="guide-badge gold">
-                      <span>🐃 Mitan Poses Here</span>
+                      <span>👤 Stand in Center (You)</span>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  /* Dual Side-by-Side Guide (Visitor on Left, Mitan on Right) */
+                  <>
+                    <div className="guide-zone visitor-zone">
+                      <div className="guide-box">
+                        <div className="corner-bracket top-left" />
+                        <div className="corner-bracket top-right" />
+                        <div className="corner-bracket bottom-left" />
+                        <div className="corner-bracket bottom-right" />
+                        <div className="guide-badge">
+                          <span>👤 Stand Here (You)</span>
+                        </div>
+                      </div>
+                    </div>
 
-                {/* Center Divider Guideline */}
-                <div className="guide-center-divider" />
+                    <div className="guide-zone mascot-zone">
+                      <div className="ghost-mascot-container">
+                        <img 
+                          src={mascotPath} 
+                          alt="Mitan Ghost" 
+                          className="ghost-mascot-img" 
+                        />
+                        <div className="guide-badge gold">
+                          <span>🐃 Mitan Poses Here</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="guide-center-divider" />
+                  </>
+                )}
               </div>
             )}
 
@@ -345,7 +368,7 @@ export function CameraCapture({
               </div>
             )}
 
-            {/* Error State with Graceful Fallbacks */}
+            {/* Error State */}
             {cameraState === 'error' && (
               <div className="camera-error-state">
                 <div className="error-icon-wrap">
@@ -369,7 +392,6 @@ export function CameraCapture({
                     <span>OR</span>
                   </div>
 
-                  {/* Test Photo Upload Fallback */}
                   <button 
                     className="kiosk-secondary-btn"
                     onClick={() => fileInputRef.current && fileInputRef.current.click()}
@@ -391,10 +413,9 @@ export function CameraCapture({
         )}
       </div>
 
-      {/* Bottom Controls Bar (Only when camera is ready & waiting to snap) */}
+      {/* Bottom Controls Bar */}
       {cameraState === 'ready' && (
         <div className="camera-bottom-controls">
-          {/* Privacy Consent Checkbox */}
           <label className="consent-check-label">
             <input 
               type="checkbox" 
@@ -407,7 +428,6 @@ export function CameraCapture({
             </span>
           </label>
 
-          {/* Action Buttons */}
           <div className="camera-actions-row">
             <button className="kiosk-cancel-btn" onClick={onCancel}>
               <span>Cancel</span>
@@ -420,7 +440,7 @@ export function CameraCapture({
               id="capture-photo-button"
             >
               <div className="capture-inner-ring">
-                <Camera size={30} />
+                <Camera size={28} />
               </div>
               <span className="capture-label">
                 {countdown !== null ? 'Capturing...' : 'Capture Photo (3s)'}
