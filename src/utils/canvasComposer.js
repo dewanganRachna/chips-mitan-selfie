@@ -4,11 +4,15 @@
  * Composes a high-resolution (1920x1080) event souvenir photograph
  * for CHiPS at Rajyotsav, Chhattisgarh.
  * 
- * Supports:
- * 1. Light Theme (Regal Ivory & Gold) & Classic Emerald Theme
- * 2. Layout Modes:
- *    - 'with-mascot': Visitor selfie on left, Mitan mascot on right
- *    - 'solo': Visitor official souvenir portrait with ceremonial state framing (without mascot)
+ * Features:
+ * 1. Natural Companion Selfie Composition:
+ *    - In 'with-mascot' mode, visitor and Mitan stand closely together
+ *      in a single continuous exhibition photograph on the same ground plane.
+ *    - Proportionate full-body / three-quarter body scale.
+ *    - Realistic ground contact shadow and studio lighting.
+ * 2. Official Solo Mode:
+ *    - Full portrait in ceremonial state souvenir framing with dual seals.
+ * 3. Light (Regal Ivory & Gold) and Dark (Emerald & Gold) Theme Support.
  */
 
 import { KIOSK_CONFIG } from '../config/kioskConfig';
@@ -196,7 +200,7 @@ function drawChipsEmblem(ctx, cx, cy, size, isLight = true) {
  *   - layoutMode: 'with-mascot' | 'solo'
  *   - canvasTheme: 'light' | 'dark'
  *   - isTransparent: boolean
- * @returns {Promise<{ dataUrl: string, blob: Blob }>}
+ * @returns {Promise<{ dataUrl: string, blob: Blob, canvas: HTMLCanvasElement }>}
  */
 export async function composePhoto(visitorPhotoUrl, mascotAssetUrl, options = {}) {
   const width = KIOSK_CONFIG.canvas.width;
@@ -225,7 +229,7 @@ export async function composePhoto(visitorPhotoUrl, mascotAssetUrl, options = {}
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
 
-  // 1. Background
+  // 1. Overall Souvenir Background (Ivory/Gold or Emerald/Gold)
   if (isLight) {
     // Prestigious Regal Ivory & Warm Pearl Gradient
     const bgGrad = ctx.createRadialGradient(
@@ -353,8 +357,8 @@ export async function composePhoto(visitorPhotoUrl, mascotAssetUrl, options = {}
   ctx.restore();
 
   // 4. Main Stage Area Layout
-  const stageTop = 185;
-  const stageHeight = 740;
+  const stageTop = 180;
+  const stageHeight = 750;
   const photoCornerRadius = 18;
 
   // Frame gradient for photo card
@@ -368,7 +372,7 @@ export async function composePhoto(visitorPhotoUrl, mascotAssetUrl, options = {}
     // ==========================================
     // SOLO OFFICIAL SOUVENIR MODE (No Mascot)
     // ==========================================
-    const photoW = 1060;
+    const photoW = 1120;
     const photoH = stageHeight;
     const photoX = (width - photoW) / 2;
     const photoY = stageTop;
@@ -394,7 +398,6 @@ export async function composePhoto(visitorPhotoUrl, mascotAssetUrl, options = {}
     roundedRect(ctx, photoX, photoY, photoW, photoH, photoCornerRadius);
     ctx.clip();
 
-    // Background behind photo
     ctx.fillStyle = isLight ? '#f8fafc' : '#061a0f';
     ctx.fillRect(photoX, photoY, photoW, photoH);
 
@@ -417,10 +420,20 @@ export async function composePhoto(visitorPhotoUrl, mascotAssetUrl, options = {}
 
     ctx.drawImage(visitorImg, sx, sy, sWidth, sHeight, photoX, photoY, photoW, photoH);
 
+    // Subtle studio vignette
+    const vignette = ctx.createRadialGradient(
+      photoX + photoW / 2, photoY + photoH / 2, photoW * 0.35,
+      photoX + photoW / 2, photoY + photoH / 2, photoW * 0.75
+    );
+    vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    vignette.addColorStop(1, 'rgba(0, 0, 0, 0.45)');
+    ctx.fillStyle = vignette;
+    ctx.fillRect(photoX, photoY, photoW, photoH);
+
     // Bottom gradient overlay inside photo
     const photoOverlayGrad = ctx.createLinearGradient(photoX, photoY + photoH - 120, photoX, photoY + photoH);
     photoOverlayGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    photoOverlayGrad.addColorStop(1, 'rgba(6, 40, 20, 0.85)');
+    photoOverlayGrad.addColorStop(1, 'rgba(6, 40, 20, 0.88)');
     ctx.fillStyle = photoOverlayGrad;
     ctx.fillRect(photoX, photoY + photoH - 120, photoW, 120);
 
@@ -468,97 +481,111 @@ export async function composePhoto(visitorPhotoUrl, mascotAssetUrl, options = {}
 
   } else {
     // ==========================================
-    // WITH MITAN MASCOT MODE
+    // NATURAL COMPANION SELFIE WITH MITAN MASCOT
+    // Unified Exhibition Studio Photograph Frame
     // ==========================================
-    const photoW = 790;
-    const photoH = stageHeight;
-    const photoX = 90;
-    const photoY = stageTop;
+    // Both visitor and Mitan stand together within ONE panoramic photo stage!
+    const photoStageX = 70;
+    const photoStageY = stageTop;
+    const photoStageW = width - 140; // 1780px
+    const photoStageH = stageHeight; // 750px
 
     ctx.save();
-    ctx.shadowColor = isLight ? 'rgba(10, 41, 25, 0.12)' : 'rgba(0, 0, 0, 0.6)';
-    ctx.shadowBlur = 24;
-    ctx.shadowOffsetX = 4;
+    ctx.shadowColor = isLight ? 'rgba(10, 41, 25, 0.15)' : 'rgba(0, 0, 0, 0.65)';
+    ctx.shadowBlur = 26;
     ctx.shadowOffsetY = 8;
 
-    // Outer rim
-    ctx.fillStyle = isLight ? '#ffffff' : '#103920';
-    roundedRect(ctx, photoX - 8, photoY - 8, photoW + 16, photoH + 16, photoCornerRadius + 4);
+    // Outer framing backing
+    ctx.fillStyle = isLight ? '#ffffff' : '#082613';
+    roundedRect(ctx, photoStageX - 8, photoStageY - 8, photoStageW + 16, photoStageH + 16, photoCornerRadius + 4);
     ctx.fill();
 
     ctx.strokeStyle = frameGrad;
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 4.5;
     ctx.stroke();
 
     ctx.shadowColor = 'transparent';
 
-    // Clip visitor photo within frame
+    // Clip all photograph contents inside this grand panoramic stage
     ctx.save();
-    roundedRect(ctx, photoX, photoY, photoW, photoH, photoCornerRadius);
+    roundedRect(ctx, photoStageX, photoStageY, photoStageW, photoStageH, photoCornerRadius);
     ctx.clip();
 
-    ctx.fillStyle = isLight ? '#f8fafc' : '#061a0f';
-    ctx.fillRect(photoX, photoY, photoW, photoH);
-
-    // Object-fit: cover
+    // 1. Draw the Visitor Photo across the unified stage
+    // Scale and position visitor photo to ensure visitor is naturally framed
     const vRatio = visitorImg.width / visitorImg.height;
-    const fRatio = photoW / photoH;
+    const stageRatio = photoStageW / photoStageH;
     let sWidth, sHeight, sx, sy;
 
-    if (vRatio > fRatio) {
+    if (vRatio > stageRatio) {
       sHeight = visitorImg.height;
-      sWidth = sHeight * fRatio;
+      sWidth = sHeight * stageRatio;
       sx = (visitorImg.width - sWidth) / 2;
       sy = 0;
     } else {
       sWidth = visitorImg.width;
-      sHeight = sWidth / fRatio;
+      sHeight = sWidth / stageRatio;
       sx = 0;
       sy = (visitorImg.height - sHeight) / 2;
     }
 
-    ctx.drawImage(visitorImg, sx, sy, sWidth, sHeight, photoX, photoY, photoW, photoH);
+    ctx.drawImage(visitorImg, sx, sy, sWidth, sHeight, photoStageX, photoStageY, photoStageW, photoStageH);
 
-    // Bottom gradient overlay
-    const photoOverlayGrad = ctx.createLinearGradient(photoX, photoY + photoH - 120, photoX, photoY + photoH);
-    photoOverlayGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    photoOverlayGrad.addColorStop(1, 'rgba(3, 20, 10, 0.85)');
-    ctx.fillStyle = photoOverlayGrad;
-    ctx.fillRect(photoX, photoY + photoH - 120, photoW, 120);
+    // 2. Professional Photographic Ambiance & Studio Treatment
+    // A. Soft studio vignette focusing attention on visitor and Mitan
+    const vignette = ctx.createRadialGradient(
+      photoStageX + photoStageW * 0.45, photoStageY + photoStageH * 0.45, photoStageW * 0.3,
+      photoStageX + photoStageW * 0.45, photoStageY + photoStageH * 0.45, photoStageW * 0.72
+    );
+    vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    vignette.addColorStop(0.7, 'rgba(0, 0, 0, 0.15)');
+    vignette.addColorStop(1, 'rgba(0, 0, 0, 0.45)');
+    ctx.fillStyle = vignette;
+    ctx.fillRect(photoStageX, photoStageY, photoStageW, photoStageH);
 
-    // Visitor badge text
-    ctx.fillStyle = '#fef4cf';
-    ctx.font = '700 22px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('Visitor Souvenir Photo', photoX + 24, photoY + photoH - 42);
+    // B. Warm festive amber ambient lighting along the top
+    const warmTopGrad = ctx.createLinearGradient(photoStageX, photoStageY, photoStageX, photoStageY + 120);
+    warmTopGrad.addColorStop(0, 'rgba(245, 197, 66, 0.12)');
+    warmTopGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = warmTopGrad;
+    ctx.fillRect(photoStageX, photoStageY, photoStageW, 120);
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.font = '500 16px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('Digital Chhattisgarh • Rajyotsav Pavilion', photoX + 24, photoY + photoH - 18);
+    // C. Ground Floor Plane Gradient (solidifies the floor for both visitor & mascot)
+    const floorGradY = photoStageY + photoStageH - 140;
+    const floorGrad = ctx.createLinearGradient(photoStageX, floorGradY, photoStageX, photoStageY + photoStageH);
+    floorGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    floorGrad.addColorStop(0.5, 'rgba(4, 25, 12, 0.45)');
+    floorGrad.addColorStop(1, 'rgba(2, 16, 8, 0.82)');
+    ctx.fillStyle = floorGrad;
+    ctx.fillRect(photoStageX, floorGradY, photoStageW, 140);
 
-    ctx.restore(); // end photo clipping
-    ctx.restore(); // end photo save
+    // 3. Draw Mitan Mascot Naturally Aligned Shoulder-to-Shoulder
+    if (mascotImg) {
+      // Natural human-proportion scale:
+      // Mitan is life-sized companion (~680px tall on a 750px stage), standing firmly on floor
+      const mascotTargetHeight = 690;
+      const mascotAspect = mascotImg.width / mascotImg.height;
+      const mascotTargetWidth = mascotTargetHeight * mascotAspect; // ~575px
 
-    // MITAN MASCOT (Right side)
-    const mascotTargetHeight = 720;
-    const mascotAspect = mascotImg.width / mascotImg.height;
-    const mascotTargetWidth = mascotTargetHeight * mascotAspect; // ~600px
-    
-    const rightRegionStart = photoX + photoW + 40; // 920
-    const rightRegionWidth = width - rightRegionStart - 70; // ~930
-    const mascotX = rightRegionStart + (rightRegionWidth - mascotTargetWidth) / 2;
-    const mascotY = stageTop + (stageHeight - mascotTargetHeight);
+      // Ground plane: align feet with stage floor
+      const floorPadding = 18;
+      const mascotY = photoStageY + photoStageH - mascotTargetHeight - floorPadding;
 
-    if (isTransparent) {
-      // Floor contact shadow
+      // Position Mitan naturally adjacent to the visitor (shoulder-to-shoulder companion framing)
+      const mascotX = photoStageX + photoStageW - mascotTargetWidth - 220;
+
+      // Realistic Contact Floor Shadow beneath Mitan's feet
       ctx.save();
-      const shadowCx = mascotX + mascotTargetWidth / 2;
-      const shadowCy = mascotY + mascotTargetHeight - 16;
-      const shadowRx = mascotTargetWidth * 0.44;
-      const shadowRy = 28;
+      const shadowCx = mascotX + mascotTargetWidth * 0.52;
+      const shadowCy = mascotY + mascotTargetHeight - 12;
+      const shadowRx = mascotTargetWidth * 0.42;
+      const shadowRy = 24;
 
-      const shadowGrad = ctx.createRadialGradient(shadowCx, shadowCy, 5, shadowCx, shadowCy, shadowRx);
-      shadowGrad.addColorStop(0, 'rgba(10, 41, 25, 0.35)');
-      shadowGrad.addColorStop(0.5, 'rgba(10, 41, 25, 0.15)');
+      // Soft ambient ground shadow
+      const shadowGrad = ctx.createRadialGradient(shadowCx, shadowCy, 10, shadowCx, shadowCy, shadowRx);
+      shadowGrad.addColorStop(0, 'rgba(0, 0, 0, 0.65)');
+      shadowGrad.addColorStop(0.4, 'rgba(0, 0, 0, 0.35)');
+      shadowGrad.addColorStop(0.8, 'rgba(0, 0, 0, 0.1)');
       shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
       ctx.fillStyle = shadowGrad;
@@ -567,82 +594,66 @@ export async function composePhoto(visitorPhotoUrl, mascotAssetUrl, options = {}
       ctx.fill();
       ctx.restore();
 
-      // Draw mascot
-      ctx.drawImage(mascotImg, 0, 0, mascotImg.width, mascotImg.height, mascotX, mascotY, mascotTargetWidth, mascotTargetHeight);
-
-      // Name banner tag beneath Mitan
+      // Draw Mascot Image
       ctx.save();
-      const tagW = 340;
-      const tagH = 50;
+      // Subtle ambient light reflection on mascot
+      ctx.shadowColor = 'rgba(245, 197, 66, 0.25)';
+      ctx.shadowBlur = 14;
+      ctx.drawImage(
+        mascotImg, 
+        0, 0, mascotImg.width, mascotImg.height, 
+        mascotX, mascotY, mascotTargetWidth, mascotTargetHeight
+      );
+      ctx.restore();
+
+      // Commemorative Name Ribbon at Mitan's Base
+      ctx.save();
+      const tagW = 320;
+      const tagH = 46;
       const tagX = mascotX + (mascotTargetWidth - tagW) / 2;
-      const tagY = mascotY + mascotTargetHeight - tagH - 8;
+      const tagY = photoStageY + photoStageH - tagH - 24;
 
-      ctx.fillStyle = isLight ? '#ffffff' : 'rgba(6, 35, 18, 0.88)';
-      roundedRect(ctx, tagX, tagY, tagW, tagH, 25);
-      ctx.fill();
-      ctx.strokeStyle = goldColor;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.fillStyle = isLight ? '#064e3b' : '#fbf0b9';
-      ctx.font = '800 22px "Plus Jakarta Sans", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('Mitan • Digital Mascot', tagX + tagW / 2, tagY + 33);
-      ctx.restore();
-
-    } else {
-      // Original mascot in portrait frame
-      const mFrameW = mascotTargetWidth + 30;
-      const mFrameH = stageHeight;
-      const mFrameX = rightRegionStart + (rightRegionWidth - mFrameW) / 2;
-      const mFrameY = stageTop;
-
-      ctx.save();
-      ctx.shadowColor = isLight ? 'rgba(10, 41, 25, 0.12)' : 'rgba(0, 0, 0, 0.55)';
-      ctx.shadowBlur = 22;
-      ctx.shadowOffsetY = 6;
-
-      ctx.fillStyle = isLight ? '#ffffff' : '#103920';
-      roundedRect(ctx, mFrameX - 6, mFrameY - 6, mFrameW + 12, mFrameH + 12, photoCornerRadius + 4);
+      // Backdrop pill
+      ctx.fillStyle = 'rgba(6, 35, 18, 0.88)';
+      roundedRect(ctx, tagX, tagY, tagW, tagH, 23);
       ctx.fill();
 
-      ctx.strokeStyle = frameGrad;
-      ctx.lineWidth = 3.5;
-      ctx.stroke();
-
-      ctx.shadowColor = 'transparent';
-
-      // Clip
-      ctx.save();
-      roundedRect(ctx, mFrameX, mFrameY, mFrameW, mFrameH, photoCornerRadius);
-      ctx.clip();
-
-      ctx.fillStyle = '#faf8f2';
-      ctx.fillRect(mFrameX, mFrameY, mFrameW, mFrameH);
-
-      const drawY = mFrameY + (mFrameH - mascotTargetHeight) / 2;
-      const drawX = mFrameX + (mFrameW - mascotTargetWidth) / 2;
-      ctx.drawImage(mascotImg, 0, 0, mascotImg.width, mascotImg.height, drawX, drawY, mascotTargetWidth, mascotTargetHeight);
-
-      // Bottom banner inside frame
-      const bannerH = 50;
-      ctx.fillStyle = isLight ? '#ffffff' : '#0a351b';
-      ctx.fillRect(mFrameX, mFrameY + mFrameH - bannerH, mFrameW, bannerH);
       ctx.strokeStyle = goldColor;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(mFrameX, mFrameY + mFrameH - bannerH);
-      ctx.lineTo(mFrameX + mFrameW, mFrameY + mFrameH - bannerH);
+      ctx.lineWidth = 1.8;
       ctx.stroke();
 
-      ctx.fillStyle = isLight ? '#064e3b' : '#fbf0b9';
-      ctx.font = '700 20px "Plus Jakarta Sans", sans-serif';
+      ctx.fillStyle = '#fef4cf';
+      ctx.font = '700 18px "Plus Jakarta Sans", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('Mitan • Digital Mascot of CHiPS', mFrameX + mFrameW / 2, mFrameY + mFrameH - 18);
-
-      ctx.restore();
+      ctx.fillText('CHiPS Mitan • डिजिटल मितान', tagX + tagW / 2, tagY + 29);
       ctx.restore();
     }
+
+    // 4. Exhibition Commemorative Watermark Badging (Bottom-Left)
+    ctx.save();
+    const badgePadLeft = photoStageX + 32;
+    const badgePadBottom = photoStageY + photoStageH - 28;
+
+    // Golden state emblem watermark icon
+    drawChipsEmblem(ctx, badgePadLeft + 22, badgePadBottom - 24, 22, isLight);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 22px "Plus Jakarta Sans", sans-serif';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    ctx.shadowBlur = 8;
+    ctx.fillText('CHiPS Pavilion • छत्तीसगढ़ राज्योत्सव 2026', badgePadLeft + 56, badgePadBottom - 30);
+
+    ctx.fillStyle = '#fef4cf';
+    ctx.font = '600 15px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('Official Commemorative Photograph • Digital Chhattisgarh', badgePadLeft + 56, badgePadBottom - 8);
+    ctx.restore();
+
+    // 5. Delicate Gold Corner Accents inside the photo frame
+    drawCornerFlourish(ctx, photoStageX + 16, photoStageY + 16, 30, 0, goldColor, goldAccent);
+    drawCornerFlourish(ctx, photoStageX + photoStageW - 16, photoStageY + 16, 30, Math.PI / 2, goldColor, goldAccent);
+
+    ctx.restore(); // end photoStage clipping
+    ctx.restore(); // end photoStage save
   }
 
   // 5. Bottom Footer Banner

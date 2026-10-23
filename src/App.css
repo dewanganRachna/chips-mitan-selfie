@@ -740,16 +740,15 @@
   transform: scaleX(-1);
 }
 
-/* Positioning Overlay */
+/* Positioning Overlay & Companion Guides */
 .positioning-overlay {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 
-.positioning-overlay.split-mode {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+.positioning-overlay.companion-mode {
+  display: block;
 }
 
 .positioning-overlay.solo-mode {
@@ -758,30 +757,46 @@
   justify-content: center;
 }
 
-.guide-zone {
+/* Companion Guide Stage: Visitor on Left-Center, Mitan on Right-Center */
+.companion-guide-stage {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100%;
   height: 100%;
-}
-
-.visitor-zone .guide-box, .solo-guide-box {
-  width: 80%;
-  height: 85%;
-  border: 2px dashed rgba(255, 255, 255, 0.6);
-  border-radius: 24px;
-  position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: center;
-  padding-top: 24px;
+  gap: 36px;
+  padding: 20px 24px 16px;
 }
 
-.solo-guide-box {
-  width: 55%;
-  height: 88%;
-  border: 2.5px dashed rgba(212, 175, 55, 0.8);
+/* Visitor Stance Zone: Three-Quarter to Full-Body Guide */
+.visitor-body-guide-frame {
+  position: relative;
+  width: 44%;
+  height: 90%;
+  border: 2px dashed rgba(212, 175, 55, 0.75);
+  border-radius: 24px;
+  background: rgba(6, 78, 59, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 12px 14px;
+  backdrop-filter: blur(1px);
+}
+
+.solo-body-guide-frame {
+  position: relative;
+  width: 52%;
+  height: 90%;
+  border: 2.5px dashed var(--gold-primary);
+  border-radius: 24px;
+  background: rgba(6, 78, 59, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 16px 14px;
 }
 
 .corner-bracket {
@@ -797,57 +812,110 @@
 .corner-bracket.bottom-left { bottom: -2px; left: -2px; border-width: 0 0 4px 4px; }
 .corner-bracket.bottom-right { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; }
 
-.guide-badge {
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--emerald-dark);
-  border: 1.5px solid var(--gold-primary);
-  padding: 6px 18px;
-  border-radius: 999px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  backdrop-filter: blur(6px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.guide-badge.gold {
-  border-color: var(--gold-primary);
-  color: var(--gold-light);
-}
-
-.mascot-zone {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ghost-mascot-container {
-  height: 85%;
+.body-silhouette-guide {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  padding-top: 6px;
 }
 
-.ghost-mascot-img {
-  height: 88%;
-  object-fit: contain;
-  opacity: 0.75;
-  filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.7));
+.guide-level-tag {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--emerald-dark);
+  border: 1px solid var(--gold-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.guide-center-divider {
+.stance-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(6, 40, 20, 0.9);
+  color: #fef4cf;
+  border: 1.5px solid var(--gold-primary);
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  animation: pulseSubtle 2.5s infinite ease-in-out;
+}
+
+/* Mitan Live Companion Guide on Right-Center */
+.mitan-companion-guide {
+  position: relative;
+  width: 44%;
+  height: 92%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.mitan-guide-shadow {
   position: absolute;
+  bottom: 34px;
+  width: 65%;
+  height: 22px;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.18) 55%, transparent 75%);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.mitan-guide-mascot-img {
+  height: 86%;
+  max-width: 100%;
+  object-fit: contain;
+  opacity: 0.92;
+  filter: drop-shadow(0 0 18px rgba(212, 175, 55, 0.65)) drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4));
+  z-index: 2;
+  transition: transform 0.3s ease;
+}
+
+.mitan-guide-badge {
+  position: relative;
+  z-index: 3;
+  margin-top: -12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--emerald-dark);
+  border: 1.5px solid var(--gold-primary);
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.badge-wave {
+  font-size: 1.05rem;
+}
+
+/* Distance Coach Pill at Bottom Center */
+.distance-coach-pill {
+  position: absolute;
+  bottom: 12px;
   left: 50%;
-  top: 10%;
-  bottom: 10%;
-  width: 1px;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(212, 175, 55, 0.6) 0,
-    rgba(212, 175, 55, 0.6) 8px,
-    transparent 8px,
-    transparent 16px
-  );
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.88);
+  color: #fef4cf;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
 }
 
 /* Countdown Overlay */
@@ -950,67 +1018,98 @@
   font-size: 0.9rem;
 }
 
-/* Split Captured Preview Stage */
+/* Unified Captured Preview Stage */
 .captured-preview-container {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #f8fafc;
-}
-
-.split-preview-stage {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  padding: 16px;
-  background: #f1f5f9;
-}
-
-.split-preview-stage.solo-stage {
-  grid-template-columns: 1fr;
-  max-width: 720px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.preview-half {
-  position: relative;
-  border-radius: 14px;
-  overflow: hidden;
   background: #020a05;
-  border: 2px solid var(--gold-primary);
+}
+
+.natural-captured-stage {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  background: #020a05;
 }
 
-.preview-half .preview-image {
+.captured-base-photo {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.preview-half .mascot-preview {
-  object-fit: contain;
-  background: radial-gradient(circle, #fefce8 0%, #f4f8f5 100%);
-  padding: 16px;
+.captured-mascot-overlay {
+  position: absolute;
+  right: 12%;
+  bottom: 0;
+  height: 92%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: none;
 }
 
-.preview-label-tag {
+.captured-mascot-shadow {
   position: absolute;
-  top: 14px;
-  left: 14px;
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--emerald-dark);
-  border: 1px solid var(--gold-primary);
+  bottom: 24px;
+  width: 70%;
+  height: 20px;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.25) 50%, transparent 75%);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.captured-mascot-img {
+  height: 88%;
+  max-width: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.55));
+  z-index: 2;
+}
+
+.captured-mascot-pill {
+  position: relative;
+  z-index: 3;
+  margin-top: -12px;
+  margin-bottom: 8px;
+  background: rgba(6, 35, 18, 0.9);
+  color: #fef4cf;
+  border: 1.5px solid var(--gold-primary);
   padding: 4px 14px;
-  border-radius: 8px;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.captured-stage-badge {
+  position: absolute;
+  top: 16px;
+  left: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--emerald-dark);
+  border: 1.5px solid var(--gold-primary);
+  padding: 6px 16px;
+  border-radius: 999px;
   font-size: 0.88rem;
   font-weight: 700;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(6px);
+}
+
+.sparkle-icon {
+  color: var(--gold-primary);
 }
 
 .capture-confirm-bar {

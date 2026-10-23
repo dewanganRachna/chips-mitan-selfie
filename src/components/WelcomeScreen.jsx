@@ -68,8 +68,8 @@ export function WelcomeScreen({
                 <Camera size={22} />
               </div>
               <div className="step-card-text">
-                <strong>1. Pose in Frame</strong>
-                <span>{photoLayout === 'with-mascot' ? 'Stand on left marker' : 'Stand in center frame'}</span>
+                <strong>1. Pose Naturally</strong>
+                <span>{photoLayout === 'with-mascot' ? 'Stand beside Mitan (3/4 pose)' : 'Stand in center frame'}</span>
               </div>
             </div>
 
@@ -124,7 +124,7 @@ export function WelcomeScreen({
                 <div className="mascot-speech-bubble">
                   <span className="bubble-wave">👋</span>
                   <span>
-                    "Hello! I'm <strong>Mitan</strong>, pose with me for your Rajyotsav selfie!"
+                    "Hello! I'm <strong>Mitan</strong>, stand right beside me for your natural Rajyotsav souvenir photo!"
                   </span>
                 </div>
 

@@ -10,7 +10,9 @@ import {
   Upload,
   UserCheck,
   User,
-  Users
+  Users,
+  Footprints,
+  Sparkles
 } from 'lucide-react';
 import { playCountdownBeep, playShutterSound } from '../utils/soundEffects';
 import { getSampleVisitorPhotoUrl } from '../utils/sampleVisitor';
@@ -119,8 +121,8 @@ export function CameraCapture({
 
     const video = videoRef.current;
     const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 1280;
-    canvas.height = video.videoHeight || 720;
+    canvas.width = video.videoWidth || 1920;
+    canvas.height = video.videoHeight || 1080;
     const ctx = canvas.getContext('2d');
 
     if (isMirrored) {
@@ -199,12 +201,12 @@ export function CameraCapture({
       <div className="camera-header-banner">
         <div className="camera-heading-wrap">
           <h2 className="camera-title">
-            {isSolo ? 'Pose for Official Rajyotsav Souvenir' : 'Stand in Frame with Mitan'}
+            {isSolo ? 'Pose for Official Rajyotsav Souvenir' : 'Pose Naturally Beside CHiPS Mitan'}
           </h2>
           <p className="camera-subtitle">
             {isSolo 
-              ? 'Stand in the CENTER of the frame with a proud smile.' 
-              : 'Stand on the LEFT marker. Mitan will pose right beside you on the right!'}
+              ? 'Stand centered in frame • Step back 5–6 ft for a proud full or three-quarter pose.' 
+              : 'Step back 5–6 ft for a 3/4 or full-body pose • Stand beside Mitan for a natural companion photo!'}
           </p>
         </div>
 
@@ -215,6 +217,7 @@ export function CameraCapture({
               className={`tool-btn ${isSolo ? 'active-pill' : ''}`}
               onClick={() => setPhotoLayout(isSolo ? 'with-mascot' : 'solo')}
               title="Switch photo style"
+              id="switch-photo-style-btn"
             >
               {isSolo ? <Users size={17} /> : <User size={17} />}
               <span>{isSolo ? 'Solo Mode' : 'With Mitan'}</span>
@@ -247,26 +250,45 @@ export function CameraCapture({
       {/* Main Viewport Container */}
       <div className="camera-viewport-card">
         {cameraState === 'captured' && capturedPhotoUrl ? (
-          /* Captured Preview */
+          /* Natural Combined Captured Preview */
           <div className="captured-preview-container">
-            <div className={`split-preview-stage ${isSolo ? 'solo-stage' : ''}`}>
-              <div className="preview-half visitor-half">
-                <div className="preview-label-tag">Your Photo</div>
-                <img src={capturedPhotoUrl} alt="Your Photo" className="preview-image" />
-              </div>
+            <div className={`natural-captured-stage ${isSolo ? 'solo-stage' : ''}`}>
+              {/* Captured Camera Photograph */}
+              <img 
+                src={capturedPhotoUrl} 
+                alt="Captured Visitor Photograph" 
+                className="captured-base-photo" 
+              />
 
+              {/* Natural Companion Mascot Overlay (in with-mascot mode) */}
               {!isSolo && (
-                <div className="preview-half mascot-half">
-                  <div className="preview-label-tag">Mitan (Companion)</div>
-                  <img src={mascotPath} alt="Mitan Mascot" className="preview-image mascot-preview" />
+                <div className="captured-mascot-overlay">
+                  <div className="captured-mascot-shadow" />
+                  <img 
+                    src={mascotPath} 
+                    alt="Mitan Mascot Companion" 
+                    className="captured-mascot-img" 
+                  />
+                  <div className="captured-mascot-pill">
+                    <span>🐃 CHiPS Mitan</span>
+                  </div>
                 </div>
               )}
+
+              {/* Corner Watermark Badge on Preview */}
+              <div className="captured-stage-badge">
+                <Sparkles size={16} className="sparkle-icon" />
+                <span>
+                  {isSolo ? 'Official Visitor Portrait' : 'Natural Companion Pose with Mitan'}
+                </span>
+              </div>
             </div>
 
+            {/* Confirmation & Action Bar */}
             <div className="capture-confirm-bar">
               <span className="confirm-tip">
                 <CheckCircle2 size={20} className="icon-success" />
-                Great shot! Ready to generate your official souvenir?
+                Great shot! Visitor and Mitan look naturally aligned. Ready to generate your official souvenir?
               </span>
 
               <div className="confirm-btn-group">
@@ -303,48 +325,70 @@ export function CameraCapture({
 
             {/* Positioning Guides Overlay */}
             {cameraState === 'ready' && (
-              <div className={`positioning-overlay ${isSolo ? 'solo-mode' : 'split-mode'}`}>
+              <div className={`positioning-overlay ${isSolo ? 'solo-mode' : 'companion-mode'}`}>
                 {isSolo ? (
-                  /* Center Solo Guide Box */
-                  <div className="solo-guide-box">
+                  /* Center Solo Guide Box (Three-Quarter / Full-Body Frame) */
+                  <div className="solo-body-guide-frame">
                     <div className="corner-bracket top-left" />
                     <div className="corner-bracket top-right" />
                     <div className="corner-bracket bottom-left" />
                     <div className="corner-bracket bottom-right" />
-                    <div className="guide-badge gold">
-                      <span>👤 Stand in Center (You)</span>
+
+                    <div className="body-silhouette-guide">
+                      <div className="guide-level-tag head">Head Level</div>
+                      <div className="guide-level-tag chest">Chest / Badge</div>
+                      <div className="guide-level-tag waist">Waist Level</div>
+                    </div>
+
+                    <div className="stance-indicator">
+                      <Footprints size={20} />
+                      <span>Stand 5–6 ft back for 3/4 or full-body pose</span>
                     </div>
                   </div>
                 ) : (
-                  /* Dual Side-by-Side Guide (Visitor on Left, Mitan on Right) */
-                  <>
-                    <div className="guide-zone visitor-zone">
-                      <div className="guide-box">
-                        <div className="corner-bracket top-left" />
-                        <div className="corner-bracket top-right" />
-                        <div className="corner-bracket bottom-left" />
-                        <div className="corner-bracket bottom-right" />
-                        <div className="guide-badge">
-                          <span>👤 Stand Here (You)</span>
-                        </div>
+                  /* Natural Companion Mode: Visitor on Left-Center, Mitan on Right-Center */
+                  <div className="companion-guide-stage">
+                    {/* Visitor Stance Zone (Left-Center) */}
+                    <div className="visitor-body-guide-frame">
+                      <div className="corner-bracket top-left" />
+                      <div className="corner-bracket top-right" />
+                      <div className="corner-bracket bottom-left" />
+                      <div className="corner-bracket bottom-right" />
+
+                      {/* Head and Body Framing Markers */}
+                      <div className="body-silhouette-guide">
+                        <div className="guide-level-tag head">Head Level</div>
+                        <div className="guide-level-tag chest">Torso Level</div>
+                      </div>
+
+                      <div className="stance-indicator">
+                        <Footprints size={19} />
+                        <span>👣 Stand Here (3/4 or Full-Body Pose)</span>
                       </div>
                     </div>
 
-                    <div className="guide-zone mascot-zone">
-                      <div className="ghost-mascot-container">
-                        <img 
-                          src={mascotPath} 
-                          alt="Mitan Ghost" 
-                          className="ghost-mascot-img" 
-                        />
-                        <div className="guide-badge gold">
-                          <span>🐃 Mitan Poses Here</span>
-                        </div>
+                    {/* Mitan Live Companion Guide (Right-Center) */}
+                    <div className="mitan-companion-guide">
+                      {/* Floor contact shadow for positioning visual cue */}
+                      <div className="mitan-guide-shadow" />
+                      
+                      <img 
+                        src={mascotPath} 
+                        alt="Mitan Live Guide" 
+                        className="mitan-guide-mascot-img" 
+                      />
+
+                      <div className="mitan-guide-badge">
+                        <span className="badge-wave">🐃</span>
+                        <span>Mitan Poses Beside You</span>
                       </div>
                     </div>
 
-                    <div className="guide-center-divider" />
-                  </>
+                    {/* Subtle bottom distance tip */}
+                    <div className="distance-coach-pill">
+                      <span>💡 <strong>Tip:</strong> Stand 5–6 ft back so your torso and hands are in frame. Lean in beside Mitan!</span>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
@@ -383,7 +427,7 @@ export function CameraCapture({
                     <span>Retry Camera</span>
                   </button>
 
-                  <button className="kiosk-secondary-btn" onClick={handleUseSamplePhoto}>
+                  <button className="kiosk-secondary-btn" onClick={handleUseSamplePhoto} id="error-use-sample-btn">
                     <UserCheck size={20} />
                     <span>Use Sample Selfie</span>
                   </button>
