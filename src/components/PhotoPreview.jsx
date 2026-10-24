@@ -6,7 +6,6 @@ import {
   Home, 
   Smartphone, 
   Sparkles, 
-  CheckCircle, 
   AlertCircle, 
   RefreshCw,
   Clock
@@ -24,7 +23,9 @@ export function PhotoPreview({
   onResetSession,
   qrHostingConfig,
   onUpdateHostingConfig,
-  photoLayout
+  photoLayout,
+  visitorCount = 1,
+  isPrecomposed = false
 }) {
   const [composing, setComposing] = useState(true);
   const [composeError, setComposeError] = useState(null);
@@ -46,7 +47,9 @@ export function PhotoPreview({
         const result = await composePhoto(visitorPhotoUrl, mascotPath, {
           isTransparent: isTransparentMascot,
           layoutMode: photoLayout,
-          canvasTheme: 'light'
+          visitorCount,
+          canvasTheme: 'light',
+          isPrecomposed
         });
 
         if (!isCancelled) {
@@ -76,7 +79,7 @@ export function PhotoPreview({
     return () => {
       isCancelled = true;
     };
-  }, [visitorPhotoUrl, mascotPath, isTransparentMascot, photoLayout]);
+  }, [visitorPhotoUrl, mascotPath, isTransparentMascot, photoLayout, isPrecomposed, visitorCount]);
 
   // Inactivity auto-reset timer to protect privacy on public kiosk
   useEffect(() => {

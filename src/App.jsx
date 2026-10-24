@@ -11,9 +11,12 @@ import { KIOSK_CONFIG } from './config/kioskConfig';
 export function App() {
   const [currentStep, setCurrentStep] = useState('welcome'); // 'welcome' | 'camera' | 'preview'
   const [visitorPhotoUrl, setVisitorPhotoUrl] = useState(null);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [isPrecomposedPhoto, setIsPrecomposedPhoto] = useState(false);
 
   // Mascot asset & photo layout configuration
   const [photoLayout, setPhotoLayout] = useState(KIOSK_CONFIG.defaultPhotoLayout || 'with-mascot'); // 'with-mascot' | 'solo'
+  const [visitorCount, setVisitorCount] = useState(1); // 1 or 2 visitors
   const [mascotMode, setMascotMode] = useState(KIOSK_CONFIG.defaultMascotMode); // 'transparent' | 'original' | 'custom'
   const [customMascotUrl, setCustomMascotUrl] = useState('');
 
@@ -66,16 +69,27 @@ export function App() {
   // Complete session reset (purges visitor image from RAM)
   const handleResetSession = useCallback(() => {
     setVisitorPhotoUrl(null);
+    setIsDemoMode(false);
+    setIsPrecomposedPhoto(false);
+    setVisitorCount(1);
     setCurrentStep('welcome');
   }, []);
 
   // Step transitions
-  const handleStartExperience = () => {
+  const handleStartExperience = (options = {}) => {
+    setIsDemoMode(Boolean(options?.demoMode));
+    if (options?.visitorCount) {
+      setVisitorCount(options.visitorCount);
+    }
     setCurrentStep('camera');
   };
 
-  const handlePhotoCaptured = (photoDataUrl) => {
+  const handlePhotoCaptured = (photoDataUrl, options = {}) => {
     setVisitorPhotoUrl(photoDataUrl);
+    setIsPrecomposedPhoto(Boolean(options?.isPrecomposed));
+    if (options?.visitorCount) {
+      setVisitorCount(options.visitorCount);
+    }
     setCurrentStep('preview');
   };
 
@@ -110,6 +124,8 @@ export function App() {
             onOpenPrivacy={() => setIsPrivacyOpen(true)}
             photoLayout={photoLayout}
             setPhotoLayout={setPhotoLayout}
+            visitorCount={visitorCount}
+            setVisitorCount={setVisitorCount}
           />
         )}
 
@@ -121,6 +137,9 @@ export function App() {
             selectedDeviceId={selectedDeviceId}
             photoLayout={photoLayout}
             setPhotoLayout={setPhotoLayout}
+            visitorCount={visitorCount}
+            setVisitorCount={setVisitorCount}
+            initialDemoMode={isDemoMode}
           />
         )}
 
@@ -134,6 +153,8 @@ export function App() {
             qrHostingConfig={qrHostingConfig}
             onUpdateHostingConfig={setQrHostingConfig}
             photoLayout={photoLayout}
+            visitorCount={visitorCount}
+            isPrecomposed={isPrecomposedPhoto}
           />
         )}
       </main>

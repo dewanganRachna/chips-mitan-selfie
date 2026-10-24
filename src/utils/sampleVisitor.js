@@ -1,14 +1,344 @@
 /**
- * Generates an attractive sample visitor portrait for demo/testing purposes
- * when a physical webcam is not attached or for fast officer preview.
+ * CHiPS Mitan Photo Booth — Sample Visitor & Scene Generator
+ * Rajyotsav, Chhattisgarh Exhibition
  * 
- * Features a natural three-quarter body pose of an exhibition visitor
- * inside the Chhattisgarh Rajyotsav Pavilion, perfectly positioned
- * to stand shoulder-to-shoulder with Mitan.
+ * Generates natural exhibition compositions:
+ * - Selected authentic Rajyotsav backdrop (public/assets/background.png)
+ * - CHiPS Mitan mascot permanently in the CENTER with arms at his sides
+ * - 1 Visitor (Visitor 1 on Left) or 2 Visitors (Visitor 1 on Left, Visitor 2 on Right)
+ * - Aligned to the exact same visual floor baseline with realistic floor contact shadows
+ * - Preserves colors, green shirt with golden CHiPS emblem, and natural proportions
  */
-export function getSampleVisitorPhotoUrl() {
-  const width = 1920;
-  const height = 1080;
+
+import { KIOSK_CONFIG } from '../config/kioskConfig';
+
+/**
+ * Loads an image from a URL or data URL and returns a Promise
+ * @param {string} src 
+ * @returns {Promise<HTMLImageElement>}
+ */
+export function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    if (!src) {
+      return reject(new Error('Image source URL is empty'));
+    }
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`Failed to load image from: ${src}`));
+    img.src = src;
+  });
+}
+
+/**
+ * Draws rounded rectangle path on canvas
+ */
+export function roundedRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+/**
+ * Draws contact shadow under feet/hooves
+ */
+function drawFloorContactShadow(ctx, cx, cy, rx, ry, opacity = 0.45) {
+  ctx.save();
+  const grad = ctx.createRadialGradient(cx, cy, 3, cx, cy, rx);
+  grad.addColorStop(0, `rgba(0, 0, 0, ${opacity})`);
+  grad.addColorStop(0.45, `rgba(0, 0, 0, ${opacity * 0.45})`);
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+/**
+ * Draw official commemorative Mitan name pill on floor
+ */
+function drawMitanNamePill(ctx, mx, mw, floorY) {
+  ctx.save();
+  const tagW = 230;
+  const tagH = 34;
+  const tagX = mx + (mw - tagW) / 2;
+  const tagY = floorY + 12;
+
+  ctx.fillStyle = 'rgba(6, 40, 22, 0.90)';
+  roundedRect(ctx, tagX, tagY, tagW, tagH, 17);
+  ctx.fill();
+
+  ctx.strokeStyle = '#b8860b';
+  ctx.lineWidth = 1.6;
+  ctx.stroke();
+
+  ctx.fillStyle = '#fef4cf';
+  ctx.font = '700 15px "Plus Jakarta Sans", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('CHiPS Mitan • डिजिटल मितान', tagX + tagW / 2, tagY + 22);
+  ctx.restore();
+}
+
+/**
+ * Draw official commemorative lower watermark badge
+ */
+function drawOfficialCommemorativeBadge(ctx, width, height) {
+  ctx.save();
+  const badgeX = 50;
+  const badgeY = height - 44;
+  const badgeW = 460;
+  const badgeH = 46;
+
+  ctx.fillStyle = 'rgba(6, 40, 22, 0.88)';
+  roundedRect(ctx, badgeX, badgeY - 32, badgeW, badgeH, 23);
+  ctx.fill();
+
+  ctx.strokeStyle = '#b8860b';
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
+
+  ctx.fillStyle = '#fef4cf';
+  ctx.font = '800 17px "Plus Jakarta Sans", sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('🏛️ CHiPS Pavilion • छत्तीसगढ़ राज्योत्सव 2026', badgeX + 22, badgeY - 8);
+
+  const dateStr = new Date().toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+  ctx.fillStyle = 'rgba(120, 86, 5, 0.85)';
+  ctx.font = '600 15px "Plus Jakarta Sans", sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText(`Official Souvenir • ${dateStr}`, width - 50, height - 20);
+
+  ctx.restore();
+}
+
+/**
+ * Draw single continuous elegant gold border around the complete composition
+ */
+function drawContinuousGoldBorder(ctx, width, height) {
+  ctx.save();
+  ctx.strokeStyle = '#b8860b';
+  ctx.lineWidth = 14;
+  ctx.strokeRect(7, 7, width - 14, height - 14);
+
+  ctx.strokeStyle = 'rgba(255, 215, 0, 0.55)';
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(18, 18, width - 36, height - 36);
+
+  const cornerFlourish = (cx, cy) => {
+    ctx.fillStyle = '#b8860b';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  cornerFlourish(24, 24);
+  cornerFlourish(width - 24, 24);
+  cornerFlourish(24, height - 24);
+  cornerFlourish(width - 24, height - 24);
+  ctx.restore();
+}
+
+/**
+ * Draws the complete natural scene with centered Mitan and visitors
+ */
+export function drawCompanionSelfieScene(ctx, width, height, visitorImg, mascotImg, options = {}) {
+  const visitorCount = options.visitorCount || 1;
+  const visitor2Img = options.visitor2Img || null;
+
+  const floorBaselineY = Math.round(height * 0.92);
+
+  // Mitan mascot centered
+  const mitanH = Math.round(height * 0.69);
+  const mitanAspect = mascotImg.width / mascotImg.height;
+  const mitanW = Math.round(mitanH * mitanAspect);
+  const mitanX = Math.round((width - mitanW) / 2);
+  const mitanY = floorBaselineY - mitanH;
+
+  // Visitor 1 (Left)
+  const v1H = Math.round(height * 0.64);
+  const v1Aspect = visitorImg.width / visitorImg.height;
+  const v1W = Math.round(v1H * v1Aspect);
+  const v1X = mitanX - v1W + 65;
+  const v1Y = floorBaselineY - v1H;
+
+  // Floor shadows
+  drawFloorContactShadow(ctx, v1X + v1W * 0.5, floorBaselineY - 5, v1W * 0.38, 20);
+  drawFloorContactShadow(ctx, mitanX + mitanW * 0.5, floorBaselineY - 5, mitanW * 0.44, 24);
+
+  // Draw Visitor 1
+  ctx.drawImage(visitorImg, v1X, v1Y, v1W, v1H);
+
+  // Draw Mitan in Center
+  ctx.drawImage(mascotImg, mitanX, mitanY, mitanW, mitanH);
+
+  // If 2 visitors
+  if (visitorCount === 2 && visitor2Img) {
+    const v2H = Math.round(height * 0.62);
+    const v2Aspect = visitor2Img.width / visitor2Img.height;
+    const v2W = Math.round(v2H * v2Aspect);
+    const v2X = mitanX + mitanW - 60;
+    const v2Y = floorBaselineY - v2H;
+
+    drawFloorContactShadow(ctx, v2X + v2W * 0.5, floorBaselineY - 5, v2W * 0.38, 20);
+    ctx.drawImage(visitor2Img, v2X, v2Y, v2W, v2H);
+  }
+
+  // Draw Mitan name pill
+  drawMitanNamePill(ctx, mitanX, mitanW, floorBaselineY);
+
+  // Commemorative watermark badge
+  if (!options.isFramed) {
+    drawOfficialCommemorativeBadge(ctx, width, height);
+  }
+
+  // Draw single continuous elegant gold border
+  drawContinuousGoldBorder(ctx, width, height);
+}
+
+/**
+ * Loads sample visitor 1
+ */
+export async function loadSampleVisitorImage() {
+  const candidateSources = [
+    '/assets/sample-visitor.png',
+    '/assets/test-visitor.png'
+  ];
+
+  for (const src of candidateSources) {
+    try {
+      const img = await loadImage(src);
+      return img;
+    } catch {
+      // try next
+    }
+  }
+
+  throw new Error('Could not load sample visitor image from public/assets/sample-visitor.png.');
+}
+
+/**
+ * Loads sample visitor 2
+ */
+export async function loadSampleVisitor2Image() {
+  return loadImage('/assets/sample-visitor-2.png').catch(() => null);
+}
+
+/**
+ * Loads Mitan mascot image
+ */
+export async function loadMitanMascotImage(mascotPath = KIOSK_CONFIG.mascotTransparentPath) {
+  const candidateSources = [
+    mascotPath,
+    '/assets/mitan-mascot-transparent.png',
+    '/assets/mitan-mascot.png'
+  ];
+
+  for (const src of candidateSources) {
+    try {
+      const img = await loadImage(src);
+      return img;
+    } catch {
+      // try next
+    }
+  }
+
+  throw new Error('Could not load Mitan mascot image from public/assets/.');
+}
+
+/**
+ * Generates clean sample visitor photo for Demo Mode
+ * @param {object} options - { visitorCount: 1 | 2 }
+ * @returns {Promise<string>} Data URL
+ */
+export async function getSampleVisitorPhotoUrl(options = {}) {
+  const visitorCount = options.visitorCount || 1;
+  const width = KIOSK_CONFIG.canvas.width || 1920;
+  const height = KIOSK_CONFIG.canvas.height || 1280;
+
+  // If 3+ visitors (Group Mode Demo with physical booth group)
+  if (visitorCount >= 3) {
+    try {
+      const [groupImg, mascotImg] = await Promise.all([
+        loadImage('/assets/sample-physical-group.jpg').catch(() => null),
+        loadMitanMascotImage()
+      ]);
+
+      if (groupImg) {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        // Draw physical group photo with object-fit: cover geometry
+        const scale = Math.max(width / groupImg.width, height / groupImg.height);
+        const sw = Math.round(groupImg.width * scale);
+        const sh = Math.round(groupImg.height * scale);
+        const ox = Math.round((width - sw) / 2);
+        const oy = Math.round((height - sh) / 2);
+        ctx.drawImage(groupImg, ox, oy, sw, sh);
+
+        // Center Mitan in the reserved middle spot
+        const floorBaselineY = Math.round(height * 0.92);
+        const mitanH = Math.round(height * 0.69);
+        const mitanAspect = mascotImg.width / mascotImg.height;
+        const mitanW = Math.round(mitanH * mitanAspect);
+        const mitanX = Math.round((width - mitanW) / 2);
+        const mitanY = floorBaselineY - mitanH;
+
+        drawFloorContactShadow(ctx, mitanX + mitanW * 0.5, floorBaselineY - 5, mitanW * 0.44, 24, 0.48);
+        ctx.drawImage(mascotImg, mitanX, mitanY, mitanW, mitanH);
+        drawMitanNamePill(ctx, mitanX, mitanW, floorBaselineY);
+        drawContinuousGoldBorder(ctx, width, height);
+        drawOfficialCommemorativeBadge(ctx, width, height);
+
+        return canvas.toDataURL('image/jpeg', KIOSK_CONFIG.canvas.outputQuality);
+      }
+    } catch (grpErr) {
+      console.warn('Fallback to separate visitor composite:', grpErr);
+    }
+  }
+
+  // If 2 visitors, we can also use reference-souvenir-duo.jpg directly for maximum fidelity!
+  if (visitorCount === 2) {
+    try {
+      const refImg = await loadImage('/assets/reference-souvenir-duo.jpg');
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(refImg, 0, 0, width, height);
+      drawContinuousGoldBorder(ctx, width, height);
+      drawOfficialCommemorativeBadge(ctx, width, height);
+      return canvas.toDataURL('image/jpeg', KIOSK_CONFIG.canvas.outputQuality);
+    } catch (refErr) {
+      console.warn('Fallback to separate visitor composite:', refErr);
+    }
+  }
+
+  // 1 Visitor or fallback:
+  const [bgImg, visitorImg, mascotImg, visitor2Img] = await Promise.all([
+    loadImage('/assets/background.png'),
+    loadSampleVisitorImage(),
+    loadMitanMascotImage(),
+    visitorCount === 2 ? loadSampleVisitor2Image() : null
+  ]);
+
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -17,295 +347,15 @@ export function getSampleVisitorPhotoUrl() {
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
 
-  // 1. Professional Exhibition Pavilion Background
-  // Deep emerald and warm atmospheric hall gradient
-  const bgGrad = ctx.createRadialGradient(
-    width * 0.45, height * 0.4, 100,
-    width * 0.45, height * 0.4, width * 0.8
-  );
-  bgGrad.addColorStop(0, '#115330');
-  bgGrad.addColorStop(0.35, '#0a3d21');
-  bgGrad.addColorStop(0.7, '#052614');
-  bgGrad.addColorStop(1, '#02160b');
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, width, height);
+  // Draw background
+  ctx.drawImage(bgImg, 0, 0, width, height);
 
-  // Exhibition Hall Floor
-  const floorY = height * 0.76;
-  const floorGrad = ctx.createLinearGradient(0, floorY, 0, height);
-  floorGrad.addColorStop(0, '#041d0f');
-  floorGrad.addColorStop(0.5, '#072e18');
-  floorGrad.addColorStop(1, '#03140a');
-  ctx.fillStyle = floorGrad;
-  ctx.fillRect(0, floorY, width, height - floorY);
-
-  // Subtle floor boundary highlight line
-  ctx.strokeStyle = 'rgba(212, 175, 55, 0.25)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(0, floorY);
-  ctx.lineTo(width, floorY);
-  ctx.stroke();
-
-  // Background Exhibition Pavilion Wall Accent Pillars / Tech Ribbons
-  ctx.save();
-  ctx.strokeStyle = 'rgba(212, 175, 55, 0.12)';
-  ctx.lineWidth = 1.5;
-
-  const pillarX = [180, 480, 820, 1150, 1480, 1780];
-  pillarX.forEach(px => {
-    ctx.beginPath();
-    ctx.moveTo(px, 0);
-    ctx.lineTo(px, floorY);
-    ctx.stroke();
+  // Draw companion scene
+  drawCompanionSelfieScene(ctx, width, height, visitorImg, mascotImg, {
+    visitorCount,
+    visitor2Img,
+    isFramed: false
   });
 
-  // Festive warm ambient bokeh circles in background
-  const bokeh = [
-    [260, 220, 70, 'rgba(245, 197, 66, 0.15)'],
-    [520, 160, 110, 'rgba(16, 185, 129, 0.16)'],
-    [850, 280, 90, 'rgba(212, 175, 55, 0.18)'],
-    [1350, 200, 130, 'rgba(245, 158, 11, 0.14)'],
-    [1650, 320, 85, 'rgba(16, 185, 129, 0.15)'],
-    [350, 520, 95, 'rgba(212, 175, 55, 0.12)'],
-    [1180, 480, 105, 'rgba(245, 197, 66, 0.12)']
-  ];
-  bokeh.forEach(([bx, by, br, fill]) => {
-    ctx.fillStyle = fill;
-    ctx.beginPath();
-    ctx.arc(bx, by, br, 0, Math.PI * 2);
-    ctx.fill();
-  });
-  ctx.restore();
-
-  // 2. Three-Quarter Body Visitor Pose (Positioned Left-Center: cx ≈ 720)
-  // Stands naturally on the floor with close proximity to Mitan
-  const cx = 720;
-  const headY = 280;
-  const shoulderY = 430;
-
-  ctx.save();
-
-  // Visitor Ground Shadow on Floor
-  ctx.save();
-  const vShadowGrad = ctx.createRadialGradient(cx, floorY + 120, 20, cx, floorY + 120, 240);
-  vShadowGrad.addColorStop(0, 'rgba(0, 0, 0, 0.55)');
-  vShadowGrad.addColorStop(0.6, 'rgba(0, 0, 0, 0.2)');
-  vShadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  ctx.fillStyle = vShadowGrad;
-  ctx.beginPath();
-  ctx.ellipse(cx, floorY + 120, 240, 45, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  // Trousers / Lower Body (Three-Quarter Pose)
-  ctx.fillStyle = '#1e293b'; // Charcoal trousers
-  ctx.beginPath();
-  ctx.moveTo(cx - 130, shoulderY + 340);
-  ctx.lineTo(cx - 145, floorY + 150);
-  ctx.lineTo(cx - 30, floorY + 150);
-  ctx.lineTo(cx - 15, shoulderY + 390);
-  ctx.lineTo(cx + 15, shoulderY + 390);
-  ctx.lineTo(cx + 30, floorY + 150);
-  ctx.lineTo(cx + 145, floorY + 150);
-  ctx.lineTo(cx + 130, shoulderY + 340);
-  ctx.closePath();
-  ctx.fill();
-
-  // Formal Shoes
-  ctx.fillStyle = '#0f172a';
-  ctx.beginPath();
-  ctx.ellipse(cx - 90, floorY + 150, 60, 20, 0, 0, Math.PI * 2);
-  ctx.ellipse(cx + 90, floorY + 150, 60, 20, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Torso / White Kurta / Shirt
-  ctx.fillStyle = '#f8fafc';
-  ctx.beginPath();
-  ctx.ellipse(cx, shoulderY + 220, 185, 200, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Traditional Nehru Jacket / Modi Vest (Royal Navy & Gold trim)
-  const vestGrad = ctx.createLinearGradient(cx - 160, shoulderY, cx + 160, shoulderY + 320);
-  vestGrad.addColorStop(0, '#1e3a8a');
-  vestGrad.addColorStop(0.5, '#172554');
-  vestGrad.addColorStop(1, '#0f172a');
-  ctx.fillStyle = vestGrad;
-
-  // Vest Body
-  ctx.beginPath();
-  ctx.moveTo(cx - 150, shoulderY + 30);
-  ctx.quadraticCurveTo(cx - 180, shoulderY + 180, cx - 155, shoulderY + 320);
-  ctx.lineTo(cx + 155, shoulderY + 320);
-  ctx.quadraticCurveTo(cx + 180, shoulderY + 180, cx + 150, shoulderY + 30);
-  ctx.quadraticCurveTo(cx + 80, shoulderY + 60, cx, shoulderY + 65);
-  ctx.quadraticCurveTo(cx - 80, shoulderY + 60, cx - 150, shoulderY + 30);
-  ctx.closePath();
-  ctx.fill();
-
-  // Mandarin / Nehru Collar
-  ctx.fillStyle = '#1e3a8a';
-  ctx.strokeStyle = '#b8860b';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.roundRect(cx - 65, shoulderY - 12, 130, 48, 8);
-  ctx.fill();
-  ctx.stroke();
-
-  // Vest Buttons
-  ctx.fillStyle = '#d4af37';
-  for (let i = 0; i < 4; i++) {
-    ctx.beginPath();
-    ctx.arc(cx, shoulderY + 100 + i * 50, 6.5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // Arms (Posed naturally with slight angle toward Mitan on right)
-  // Left arm (visitor's right arm)
-  ctx.fillStyle = '#f8fafc';
-  ctx.beginPath();
-  ctx.moveTo(cx - 150, shoulderY + 35);
-  ctx.quadraticCurveTo(cx - 210, shoulderY + 160, cx - 195, shoulderY + 310);
-  ctx.quadraticCurveTo(cx - 160, shoulderY + 320, cx - 135, shoulderY + 280);
-  ctx.quadraticCurveTo(cx - 160, shoulderY + 160, cx - 125, shoulderY + 70);
-  ctx.closePath();
-  ctx.fill();
-
-  // Right arm (leaning slightly towards Mitan in a companion gesture)
-  ctx.beginPath();
-  ctx.moveTo(cx + 150, shoulderY + 35);
-  ctx.quadraticCurveTo(cx + 225, shoulderY + 160, cx + 220, shoulderY + 300);
-  ctx.quadraticCurveTo(cx + 185, shoulderY + 310, cx + 160, shoulderY + 270);
-  ctx.quadraticCurveTo(cx + 170, shoulderY + 160, cx + 125, shoulderY + 70);
-  ctx.closePath();
-  ctx.fill();
-
-  // Hands
-  ctx.fillStyle = '#e5a16d'; // Natural skin tone
-  ctx.beginPath();
-  ctx.ellipse(cx - 180, shoulderY + 335, 26, 35, -0.2, 0, Math.PI * 2);
-  ctx.ellipse(cx + 205, shoulderY + 320, 26, 35, 0.25, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Neck
-  ctx.fillStyle = '#d89460';
-  ctx.fillRect(cx - 40, headY + 70, 80, 65);
-
-  // Head / Face
-  ctx.fillStyle = '#e5a16d';
-  ctx.beginPath();
-  ctx.arc(cx, headY, 115, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Hair
-  ctx.fillStyle = '#1e1b18';
-  ctx.beginPath();
-  ctx.arc(cx, headY - 25, 120, Math.PI * 0.9, Math.PI * 2.1);
-  ctx.quadraticCurveTo(cx + 125, headY - 10, cx + 115, headY + 30);
-  ctx.quadraticCurveTo(cx + 90, headY - 15, cx, headY - 20);
-  ctx.quadraticCurveTo(cx - 90, headY - 15, cx - 115, headY + 30);
-  ctx.quadraticCurveTo(cx - 125, headY - 10, cx - 120, headY - 25);
-  ctx.closePath();
-  ctx.fill();
-
-  // Cheerful Smile
-  ctx.strokeStyle = '#8c441b';
-  ctx.lineWidth = 5;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.arc(cx, headY + 12, 44, 0.15 * Math.PI, 0.85 * Math.PI);
-  ctx.stroke();
-
-  // Teeth highlight
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath();
-  ctx.arc(cx, headY + 15, 34, 0.22 * Math.PI, 0.78 * Math.PI);
-  ctx.fill();
-
-  // Eyes & Eyebrows
-  ctx.fillStyle = '#1a1816';
-  // Left eye
-  ctx.beginPath();
-  ctx.arc(cx - 40, headY - 18, 9, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath();
-  ctx.arc(cx - 42, headY - 21, 3, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Right eye
-  ctx.fillStyle = '#1a1816';
-  ctx.beginPath();
-  ctx.arc(cx + 40, headY - 18, 9, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath();
-  ctx.arc(cx + 38, headY - 21, 3, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Eyebrows
-  ctx.strokeStyle = '#26221f';
-  ctx.lineWidth = 4.5;
-  ctx.beginPath();
-  ctx.moveTo(cx - 65, headY - 42);
-  ctx.quadraticCurveTo(cx - 40, headY - 50, cx - 18, headY - 42);
-  ctx.moveTo(cx + 18, headY - 42);
-  ctx.quadraticCurveTo(cx + 40, headY - 50, cx + 65, headY - 42);
-  ctx.stroke();
-
-  // Nose
-  ctx.strokeStyle = '#c4804f';
-  ctx.lineWidth = 3.5;
-  ctx.beginPath();
-  ctx.moveTo(cx, headY - 15);
-  ctx.lineTo(cx - 5, headY + 10);
-  ctx.lineTo(cx + 6, headY + 12);
-  ctx.stroke();
-
-  // Official Rajyotsav Exhibition Delegate Ribbon & Badge on Chest
-  ctx.save();
-  const badgeX = cx + 55;
-  const badgeY = shoulderY + 85;
-
-  // Lanyard ribbon
-  ctx.strokeStyle = '#f59e0b';
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(cx + 25, shoulderY + 45);
-  ctx.lineTo(badgeX + 35, badgeY);
-  ctx.stroke();
-
-  // Gold Badge Card
-  ctx.fillStyle = '#ffffff';
-  ctx.strokeStyle = '#b8860b';
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.roundRect(badgeX, badgeY, 78, 105, 8);
-  ctx.fill();
-  ctx.stroke();
-
-  // Gold top banner on badge
-  ctx.fillStyle = '#b8860b';
-  ctx.beginPath();
-  ctx.roundRect(badgeX, badgeY, 78, 24, [8, 8, 0, 0]);
-  ctx.fill();
-
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 11px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('RAJYOTSAV', badgeX + 39, badgeY + 16);
-
-  ctx.fillStyle = '#064e3b';
-  ctx.font = 'bold 12px sans-serif';
-  ctx.fillText('CHiPS', badgeX + 39, badgeY + 46);
-
-  ctx.fillStyle = '#64748b';
-  ctx.font = '9px sans-serif';
-  ctx.fillText('DELEGATE', badgeX + 39, badgeY + 66);
-  ctx.fillText('2026', badgeX + 39, badgeY + 82);
-
-  ctx.restore();
-  ctx.restore();
-
-  return canvas.toDataURL('image/jpeg', 0.95);
+  return canvas.toDataURL('image/jpeg', KIOSK_CONFIG.canvas.outputQuality);
 }

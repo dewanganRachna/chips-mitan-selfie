@@ -25,15 +25,19 @@ export const KIOSK_CONFIG = {
   // Canvas theme: 'light' (Regal Ivory & Gold) or 'dark' (Emerald & Gold)
   defaultCanvasTheme: 'light',
 
-  // Mascot Asset Configuration (Configurable in one place)
+  // Mascot, Background & Demo Visitor Asset Configuration
+  backgroundImagePath: '/assets/background.png',
   mascotAssetPath: '/assets/mitan-mascot.png',
   mascotTransparentPath: '/assets/mitan-mascot-transparent.png',
+  sampleVisitorPath: '/assets/sample-visitor.png',
+  sampleVisitor2Path: '/assets/sample-visitor-2.png',
+  referenceSouvenirDuoPath: '/assets/reference-souvenir-duo.jpg',
   defaultMascotMode: 'transparent', // 'transparent' | 'original'
   
-  // Canvas Composition Parameters
+  // Canvas Composition Parameters (3:2 landscape matching official Rajyotsav backdrop)
   canvas: {
     width: 1920,
-    height: 1080,
+    height: 1280,
     outputFilenamePrefix: 'CHiPS-Rajyotsav-Photo',
     outputQuality: 0.95,
   },

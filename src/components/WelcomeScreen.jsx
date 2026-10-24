@@ -1,5 +1,5 @@
 import React from 'react';
-import { Camera, Sparkles, Shield, ArrowRight, Smartphone, User, Award } from 'lucide-react';
+import { Camera, Sparkles, Shield, ArrowRight, Smartphone, Award, UserCheck } from 'lucide-react';
 import { KIOSK_CONFIG } from '../config/kioskConfig';
 
 export function WelcomeScreen({
@@ -7,7 +7,9 @@ export function WelcomeScreen({
   mascotPath,
   onOpenPrivacy,
   photoLayout,
-  setPhotoLayout
+  setPhotoLayout,
+  visitorCount = 1,
+  setVisitorCount
 }) {
   return (
     <div className="welcome-screen">
@@ -34,20 +36,47 @@ export function WelcomeScreen({
 
           <p className="welcome-hindi-quote">
             "नमस्ते! छत्तीसगढ़ राज्योत्सव में आपका स्वागत है। <br />
-            डिजिटल छत्तीसगढ़ की इस ऐतिहासिक प्रदर्शनी में अपनी <strong>यादगार तस्वीर</strong> लीजिए — अकेले या चिप्स मितान के संग!"
+            डिजिटल छत्तीसगढ़ की इस ऐतिहासिक प्रदर्शनी में अपनी <strong>यादगार तस्वीर</strong> लीजिए — 1, 2 या पूरे परिवार के साथ चिप्स मितान के संग!"
           </p>
 
-          {/* Photo Style Selector (Solo vs With Mitan) */}
+          {/* Photo Style Selector: 1 Visitor, 2 Visitors (Duo), Group (3+), or Solo */}
           <div className="pose-choice-container">
-            <span className="pose-choice-label">Choose Your Photo Style:</span>
+            <span className="pose-choice-label">Choose Group Size:</span>
             <div className="pose-choice-pills">
               <button
                 type="button"
-                className={`pose-pill-btn ${photoLayout === 'with-mascot' ? 'active' : ''}`}
-                onClick={() => setPhotoLayout('with-mascot')}
+                className={`pose-pill-btn ${photoLayout === 'with-mascot' && visitorCount === 1 ? 'active' : ''}`}
+                onClick={() => {
+                  setPhotoLayout('with-mascot');
+                  if (setVisitorCount) setVisitorCount(1);
+                }}
                 id="select-with-mitan-btn"
               >
-                <span>🐃 With Mitan Mascot</span>
+                <span>🐃 1 Visitor + Mitan</span>
+              </button>
+
+              <button
+                type="button"
+                className={`pose-pill-btn ${photoLayout === 'with-mascot' && visitorCount === 2 ? 'active' : ''}`}
+                onClick={() => {
+                  setPhotoLayout('with-mascot');
+                  if (setVisitorCount) setVisitorCount(2);
+                }}
+                id="select-duo-mitan-btn"
+              >
+                <span>👥 2 Visitors (Duo)</span>
+              </button>
+
+              <button
+                type="button"
+                className={`pose-pill-btn ${photoLayout === 'with-mascot' && visitorCount >= 3 ? 'active' : ''}`}
+                onClick={() => {
+                  setPhotoLayout('with-mascot');
+                  if (setVisitorCount) setVisitorCount(3);
+                }}
+                id="select-group-mitan-btn"
+              >
+                <span>👨‍👩‍👦 Group (3+)</span>
               </button>
 
               <button
@@ -56,7 +85,7 @@ export function WelcomeScreen({
                 onClick={() => setPhotoLayout('solo')}
                 id="select-solo-photo-btn"
               >
-                <span>🏛️ Solo Official Souvenir</span>
+                <span>🏛️ Solo</span>
               </button>
             </div>
           </div>
@@ -69,7 +98,7 @@ export function WelcomeScreen({
               </div>
               <div className="step-card-text">
                 <strong>1. Pose Naturally</strong>
-                <span>{photoLayout === 'with-mascot' ? 'Stand beside Mitan (3/4 pose)' : 'Stand in center frame'}</span>
+                <span>{photoLayout === 'with-mascot' ? 'Pose beside Mitan (seated or standing)' : 'Center frame (desk or standing)'}</span>
               </div>
             </div>
 
@@ -94,15 +123,25 @@ export function WelcomeScreen({
             </div>
           </div>
 
-          {/* Primary Action Button */}
+          {/* Primary Action Buttons */}
           <div className="welcome-actions">
             <button
               className="kiosk-primary-btn pulse-glow"
-              onClick={onStart}
+              onClick={() => onStart({ demoMode: false })}
               id="start-experience-button"
             >
-              <span>Start Your Experience</span>
+              <span>Start Camera Booth</span>
               <ArrowRight size={24} className="btn-arrow-icon" />
+            </button>
+
+            <button
+              className="kiosk-demo-btn"
+              onClick={() => onStart({ demoMode: true })}
+              id="start-demo-mode-button"
+              title="Test booth instantly with sample visitor (No webcam required)"
+            >
+              <UserCheck size={20} />
+              <span>⚡ Try Demo Mode (Sample Visitor)</span>
             </button>
           </div>
 
@@ -124,7 +163,7 @@ export function WelcomeScreen({
                 <div className="mascot-speech-bubble">
                   <span className="bubble-wave">👋</span>
                   <span>
-                    "Hello! I'm <strong>Mitan</strong>, stand right beside me for your natural Rajyotsav souvenir photo!"
+                    "Hello! I'm <strong>Mitan</strong>, pose right beside me for your Rajyotsav souvenir! Works great at your desk or in full-body kiosk mode!"
                   </span>
                 </div>
 

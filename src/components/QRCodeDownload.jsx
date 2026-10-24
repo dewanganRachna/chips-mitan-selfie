@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { X, Smartphone, AlertTriangle, CheckCircle, ExternalLink, ShieldCheck, Copy, Check } from 'lucide-react';
-import { KIOSK_CONFIG } from '../config/kioskConfig';
+import { X, Smartphone, AlertTriangle, ShieldCheck, Copy, Check } from 'lucide-react';
 
 export function QRCodeDownload({ 
   isOpen, 
   onClose, 
-  compositeDataUrl, 
+  compositeDataUrl: _compositeDataUrl, 
   qrHostingConfig,
   onUpdateHostingConfig
 }) {

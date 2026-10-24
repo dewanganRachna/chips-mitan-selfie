@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Settings, Image, Camera, Globe, Volume2, Check, RefreshCw } from 'lucide-react';
+import { X, Settings, Image, Camera, Globe, Check } from 'lucide-react';
 import { KIOSK_CONFIG } from '../config/kioskConfig';
 
 export function SettingsModal({ 
